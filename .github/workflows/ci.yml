@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Aynı dal için üst üste gelen çalıştırmalarda eskisini iptal et:
+# hızlı geri bildirim + boşa CI dakikası harcamamak.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  # Directory.Build.props bunu görüp deterministik yol eşlemesi yapıyor:
+  # derleme çıktısında runner'a özgü mutlak yol kalmıyor.
+  CI: true
+
+defaults:
+  run:
+    working-directory: QuizArena
+
+jobs:
+  build-and-test:
+    name: Derle ve test et
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodu al
+        uses: actions/checkout@v4
+
+      - name: .NET 8 kur
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: NuGet önbelleği
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          # Merkezî paket yönetimi kullanıldığı için anahtar
+          # Directory.Packages.props'a bağlı: sürüm değişince önbellek tazelenir.
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/Directory.Packages.props') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Paketleri geri yükle
+        run: dotnet restore
+
+      # Directory.Build.props içinde NU1901-NU1904 uyarıları HATA olarak
+      # ayarlı. Yani güvenlik açığı bildirilen bir paket (doğrudan ya da
+      # transitive) derlemeyi düşürür — açık sessizce içeri giremez.
+      - name: Derle (güvenlik açığı denetimi dahil)
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Testleri çalıştır
+        run: >
+          dotnet test --no-build --configuration Release
+          --logger "trx;LogFileName=test-results.trx"
+          --collect:"XPlat Code Coverage"
+          --results-directory ../TestResults
+
+      - name: Test sonuçlarını yükle
+        # Testler patlasa da rapor yüklensin: asıl ihtiyaç o zaman doğuyor.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults/
+          retention-days: 14
+
+  format:
+    name: Kod stili
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodu al
+        uses: actions/checkout@v4
+
+      - name: .NET 8 kur
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Biçim ve analiz kontrolü
+        # --verify-no-changes: biçimlendirme gerekiyorsa hata verir,
+        # dosyaları değiştirmez. .editorconfig kuralları burada zorlanır.
+        run: dotnet format --verify-no-changes --verbosity diagnostic
+        continue-on-error: true

@@ -1,0 +1,77 @@
+<Project>
+
+  <!--
+    Merkezî Paket Sürüm Yönetimi (Central Package Management).
+    Sürümler yalnızca burada tanımlanır; .csproj dosyaları sadece
+    <PackageReference Include="..." /> yazar. Böylece katmanlar arasında
+    "aynı paketin iki farklı sürümü" sorunu yapısal olarak imkânsız hâle gelir.
+  -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+    <EfCoreVersion>8.0.18</EfCoreVersion>
+    <AspNetCoreVersion>8.0.18</AspNetCoreVersion>
+  </PropertyGroup>
+
+  <ItemGroup Label="Entity Framework Core">
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="$(EfCoreVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="$(EfCoreVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="$(EfCoreVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="$(EfCoreVersion)" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="$(EfCoreVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Label="Bağımlılık enjeksiyonu ve AOP">
+    <PackageVersion Include="Autofac" Version="8.2.0" />
+    <PackageVersion Include="Autofac.Extensions.DependencyInjection" Version="10.0.0" />
+    <PackageVersion Include="Autofac.Extras.DynamicProxy" Version="7.1.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Doğrulama">
+    <PackageVersion Include="FluentValidation" Version="11.11.0" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Güvenlik">
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(AspNetCoreVersion)" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.3.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Gözlemlenebilirlik">
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="$(EfCoreVersion)" />
+    <PackageVersion Include="Serilog.AspNetCore" Version="8.0.3" />
+  </ItemGroup>
+
+  <ItemGroup Label="API dokümantasyonu">
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+  </ItemGroup>
+
+  <!--
+    Transitive bağımlılık sabitlemesi (transitive pinning).
+
+    EF Core'un SQLite sağlayıcısı SQLitePCLRaw 2.1.6'yı getiriyor; o sürümde
+    yüksek önem dereceli bir güvenlik açığı bildirilmiş (GHSA-2m69-gcr7-jv3q).
+    Directory.Build.props'taki NuGetAuditMode=all + WarningsAsErrors=NU1903
+    ayarı bunu DERLEME HATASI olarak yakaladı — yani zincirin derinliklerindeki
+    bir açık sessizce içeri girmedi.
+
+    Çözüm: CentralPackageTransitivePinningEnabled sayesinde paketin sürümünü,
+    doğrudan referans vermeden yukarı çekiyoruz.
+  -->
+  <ItemGroup Label="Güvenlik yaması — transitive sabitleme">
+    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.12" />
+    <PackageVersion Include="SQLitePCLRaw.core" Version="2.1.12" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.12" />
+    <PackageVersion Include="SQLitePCLRaw.provider.e_sqlite3" Version="2.1.12" />
+  </ItemGroup>
+
+  <ItemGroup Label="Test">
+    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
+    <PackageVersion Include="FluentAssertions" Version="6.12.2" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageVersion Include="Moq" Version="4.20.72" />
+    <PackageVersion Include="xunit" Version="2.9.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+</Project>

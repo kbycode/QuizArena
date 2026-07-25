@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    BLL = iş kuralları katmanı. Uygulamanın "beyni" burasıdır.
+    HTTP, SignalR, JSON gibi taşıma/sunum kavramlarını TANIMAZ; bu yüzden aynı
+    kurallar bir web API'sinden, bir arka plan görevinden veya bir konsol
+    aracından çağrıldığında aynı şekilde çalışır.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Autofac" />
+    <PackageReference Include="Autofac.Extras.DynamicProxy" />
+    <PackageReference Include="FluentValidation" />
+    <!-- Doğrulayıcıların derleme taranarak DI'a kaydedilmesi için -->
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QuizArena.DAL\QuizArena.DAL.csproj" />
+    <ProjectReference Include="..\QuizArena.Entities\QuizArena.Entities.csproj" />
+  </ItemGroup>
+
+</Project>

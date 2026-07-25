@@ -1,0 +1,280 @@
+/* ==========================================================================
+   QuizArena — demo arayüz stilleri
+
+   Tek dosya, dış bağımlılık yok (CDN yok → sıkı CSP ihlal edilmiyor,
+   uygulama çevrimdışı da çalışıyor).
+   ========================================================================== */
+
+:root {
+  --bg: #0b1020;
+  --bg-soft: #131a30;
+  --bg-card: #172041;
+  --bg-hover: #1e2950;
+  --border: #263258;
+  --text: #e8ecf8;
+  --text-muted: #96a0c2;
+  --primary: #6366f1;
+  --primary-hover: #7c7ff5;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shadow: 0 12px 32px rgba(4, 8, 22, 0.45);
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font);
+  color: var(--text);
+  background:
+    radial-gradient(1000px 600px at 12% -10%, #1e2a5c 0%, transparent 55%),
+    radial-gradient(800px 500px at 88% 0%, #2a1f52 0%, transparent 50%),
+    var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ------------------------------- Üst çubuk ------------------------------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 22px;
+  background: rgba(11, 16, 32, 0.82);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-icon { font-size: 30px; line-height: 1; }
+.brand strong { display: block; font-size: 17px; letter-spacing: -0.2px; }
+.brand small { color: var(--text-muted); font-size: 12px; }
+
+.topbar-actions { display: flex; align-items: center; gap: 14px; }
+.user-badge { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+
+.link { color: var(--text-muted); font-size: 13px; text-decoration: none; }
+.link:hover { color: var(--text); text-decoration: underline; }
+
+/* --------------------------------- Yerleşim -------------------------------- */
+#app { max-width: 1180px; margin: 0 auto; padding: 26px 20px 60px; }
+.screen { animation: fade 0.25s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.home-layout, .game-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+}
+.sidebar { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 86px; }
+
+@media (max-width: 900px) {
+  .home-layout, .game-layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; }
+}
+
+.card {
+  background: linear-gradient(180deg, var(--bg-card), var(--bg-soft));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 18px;
+}
+.card:last-child { margin-bottom: 0; }
+.card-narrow { max-width: 560px; margin: 32px auto; }
+
+h2 { margin: 0 0 6px; font-size: 21px; letter-spacing: -0.3px; }
+h3 { margin: 0 0 14px; font-size: 15px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--text-muted); }
+.section-head { margin-bottom: 14px; }
+.section-head p { margin: 0; color: var(--text-muted); font-size: 14px; }
+.section-head-inline { display: flex; align-items: center; justify-content: space-between; }
+.muted { color: var(--text-muted); font-size: 14px; }
+.hint { display: block; margin-top: 6px; color: var(--text-muted); font-size: 12px; }
+.hidden { display: none !important; }
+
+/* --------------------------------- Formlar -------------------------------- */
+.tabs { display: flex; gap: 6px; margin-bottom: 20px; background: var(--bg); padding: 4px; border-radius: var(--radius-sm); }
+.tab {
+  flex: 1; padding: 9px; border: 0; border-radius: 7px; cursor: pointer;
+  background: transparent; color: var(--text-muted); font: inherit; font-size: 14px; font-weight: 600;
+}
+.tab.active { background: var(--bg-card); color: var(--text); }
+
+.form { display: flex; flex-direction: column; gap: 14px; }
+label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); }
+input, select {
+  width: 100%; margin-top: 6px; padding: 11px 13px;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font: inherit; font-size: 15px; font-weight: 400;
+}
+input:focus, select:focus { outline: 2px solid var(--primary); outline-offset: 1px; border-color: var(--primary); }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 16px; }
+
+/* --------------------------------- Butonlar ------------------------------- */
+.btn {
+  padding: 11px 20px; border: 1px solid transparent; border-radius: var(--radius-sm);
+  font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background 0.15s, transform 0.08s, opacity 0.15s;
+}
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+.btn-ghost { background: transparent; border-color: var(--border); color: var(--text); }
+.btn-ghost:hover:not(:disabled) { background: var(--bg-hover); }
+.btn-sm { padding: 6px 12px; font-size: 12.5px; }
+
+/* ------------------------------- Kategoriler ------------------------------ */
+.category-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 12px; margin-bottom: 18px;
+}
+.category {
+  padding: 16px; text-align: left; cursor: pointer;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); font: inherit;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+.category:hover:not(:disabled) { background: var(--bg-hover); transform: translateY(-2px); }
+.category.selected { border-color: var(--accent, var(--primary)); background: var(--bg-hover); box-shadow: inset 0 0 0 1px var(--accent, var(--primary)); }
+.category:disabled { opacity: 0.4; cursor: not-allowed; }
+.category-icon { font-size: 26px; display: block; margin-bottom: 8px; }
+.category-name { display: block; font-weight: 700; font-size: 15px; margin-bottom: 3px; }
+.category-meta { display: block; color: var(--text-muted); font-size: 12px; }
+
+/* ---------------------------------- Odalar -------------------------------- */
+.join-inline { display: flex; gap: 8px; margin-left: auto; }
+.join-inline input { width: 140px; margin-top: 0; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; }
+
+.room-list { display: flex; flex-direction: column; gap: 10px; }
+.room {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+}
+.room-info strong { display: block; font-size: 14.5px; }
+.room-info small { color: var(--text-muted); font-size: 12.5px; }
+
+.join-code {
+  font-size: 38px; font-weight: 800; letter-spacing: 9px; text-align: center;
+  padding: 18px; margin: 14px 0; background: var(--bg); border: 1px dashed var(--border);
+  border-radius: var(--radius); color: var(--primary-hover);
+}
+
+.participant-list { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; }
+.participant {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 13px; background: var(--bg); border-radius: var(--radius-sm); font-size: 14px;
+}
+
+/* ----------------------------------- Oyun --------------------------------- */
+.game-head { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-bottom: 16px; }
+.chip {
+  padding: 4px 11px; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--text-muted);
+}
+.chip-fire { background: rgba(245, 158, 11, 0.14); border-color: var(--warning); color: var(--warning); }
+.score { margin-left: auto; font-size: 22px; font-weight: 800; color: var(--primary-hover); }
+
+.timer { height: 7px; background: var(--bg); border-radius: 999px; overflow: hidden; }
+.timer-bar {
+  height: 100%; width: 100%; background: linear-gradient(90deg, var(--success), var(--warning));
+  border-radius: 999px; transition: width 0.25s linear, background 0.4s;
+}
+.timer-bar.critical { background: var(--danger); }
+.timer-text { margin-top: 7px; font-size: 12.5px; color: var(--text-muted); text-align: right; }
+
+.question { margin: 22px 0; font-size: 22px; line-height: 1.45; letter-spacing: -0.3px; }
+
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option {
+  display: flex; align-items: center; gap: 13px; width: 100%;
+  padding: 15px 17px; text-align: left; cursor: pointer;
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text); font: inherit; font-size: 15.5px;
+  transition: background 0.13s, border-color 0.13s;
+}
+.option:hover:not(:disabled) { background: var(--bg-hover); border-color: var(--primary); }
+.option:disabled { cursor: default; }
+.option-key {
+  flex: 0 0 30px; height: 30px; display: grid; place-items: center;
+  background: var(--bg-card); border-radius: 8px; font-weight: 800; font-size: 13.5px;
+}
+.option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.14); }
+.option.correct .option-key { background: var(--success); color: #04231a; }
+.option.wrong { border-color: var(--danger); background: rgba(239, 68, 68, 0.14); }
+.option.wrong .option-key { background: var(--danger); color: #2a0606; }
+
+.feedback { margin-top: 18px; padding: 15px 17px; border-radius: var(--radius-sm); font-size: 14.5px; }
+.feedback.correct { background: rgba(16, 185, 129, 0.12); border: 1px solid var(--success); }
+.feedback.wrong { background: rgba(239, 68, 68, 0.12); border: 1px solid var(--danger); }
+.feedback strong { display: block; margin-bottom: 5px; font-size: 16px; }
+.feedback .points { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 9px; font-size: 12.5px; color: var(--text-muted); }
+.feedback .explanation { margin-top: 9px; color: var(--text-muted); line-height: 1.5; }
+
+/* ------------------------------- İstatistik ------------------------------- */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 11px; }
+.stat { padding: 12px; background: var(--bg); border-radius: var(--radius-sm); text-align: center; }
+.stat-value { display: block; font-size: 20px; font-weight: 800; }
+.stat-label { display: block; margin-top: 3px; font-size: 11.5px; color: var(--text-muted); }
+
+.leaderboard { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.leaderboard li {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 11px; background: var(--bg); border-radius: var(--radius-sm); font-size: 13.5px;
+}
+.leaderboard li.me { border: 1px solid var(--primary); background: var(--bg-hover); }
+.rank { flex: 0 0 26px; font-weight: 800; color: var(--text-muted); text-align: center; }
+.rank.gold { color: #fbbf24; } .rank.silver { color: #cbd5e1; } .rank.bronze { color: #d97706; }
+.leaderboard .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.leaderboard .points { font-weight: 700; color: var(--primary-hover); }
+
+.badges { display: flex; flex-wrap: wrap; gap: 9px; }
+.badge {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 13px; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 999px; font-size: 12.5px;
+}
+.badge.new { border-color: var(--warning); background: rgba(245, 158, 11, 0.12); animation: pop 0.4s ease; }
+@keyframes pop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.badge-icon { font-size: 17px; }
+
+/* ----------------------------------- Sonuç -------------------------------- */
+.result-card { text-align: center; }
+.result-emoji { font-size: 58px; margin-bottom: 8px; }
+.result-score { font-size: 46px; font-weight: 800; color: var(--primary-hover); margin: 6px 0 20px; }
+.result-card .stats, .result-card .badges { margin-bottom: 20px; }
+.result-card .badges { justify-content: center; }
+.result-card h3 { text-align: left; }
+.result-card .leaderboard { text-align: left; margin-bottom: 20px; }
+
+/* ---------------------------------- Bildirim ------------------------------ */
+.toast {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  max-width: min(520px, calc(100vw - 40px));
+  padding: 13px 19px; background: var(--bg-card);
+  border: 1px solid var(--border); border-left: 3px solid var(--primary);
+  border-radius: var(--radius-sm); box-shadow: var(--shadow);
+  font-size: 14px; z-index: 100; animation: slideUp 0.22s ease;
+}
+.toast.error { border-left-color: var(--danger); }
+.toast.success { border-left-color: var(--success); }
+@keyframes slideUp { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+.empty { padding: 20px; text-align: center; color: var(--text-muted); font-size: 13.5px; }
+
+/* Klavye ile gezinenler için görünür odak halkası. */
+:focus-visible { outline: 2px solid var(--primary-hover); outline-offset: 2px; }

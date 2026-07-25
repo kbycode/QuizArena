@@ -1,0 +1,86 @@
+## ---------------------------------------------------------------------------
+##  Build çıktıları
+## ---------------------------------------------------------------------------
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+*.dll
+*.exe
+*.pdb
+*.cache
+
+## ---------------------------------------------------------------------------
+##  IDE / editör durumu  (makine adı, kullanıcı yolu, pencere düzeni sızdırır)
+## ---------------------------------------------------------------------------
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.DotSettings.user
+
+## ---------------------------------------------------------------------------
+##  Gizli bilgi  —  bu dosyalar ASLA depoya girmez
+## ---------------------------------------------------------------------------
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.local.json
+secrets.json
+*.pfx
+*.p12
+*.key
+.env
+.env.*
+!.env.example
+
+## ---------------------------------------------------------------------------
+##  Kişisel çalışma notu
+##  Depoyu inceleyenlere değil, yalnızca sana hitap eden bir belge.
+##  Depoya girmesini istersen bu satırı sil.
+## ---------------------------------------------------------------------------
+CALISMA-NOTU.md
+
+## ---------------------------------------------------------------------------
+##  Test / kapsam raporları
+## ---------------------------------------------------------------------------
+[Tt]est[Rr]esult*/
+coverage*
+*.coverage
+*.trx
+
+## ---------------------------------------------------------------------------
+##  Yerel veritabanı dosyaları
+## ---------------------------------------------------------------------------
+*.mdf
+*.ldf
+*.ndf
+*.db
+*.db-shm
+*.db-wal
+
+## ---------------------------------------------------------------------------
+##  Paket yöneticileri / araçlar
+## ---------------------------------------------------------------------------
+packages/
+!packages/build/
+*.nupkg
+*.snupkg
+.nuget/
+node_modules/
+msbuild.log
+*.binlog
+
+## ---------------------------------------------------------------------------
+##  İşletim sistemi
+## ---------------------------------------------------------------------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store

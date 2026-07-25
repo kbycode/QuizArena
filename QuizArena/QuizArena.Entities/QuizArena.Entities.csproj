@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Entities = uygulamanın alan (domain) modeli ve veri taşıyıcıları.
+    Hiçbir davranış/iş kuralı içermez, hiçbir NuGet paketine bağımlı değildir.
+    Sadece Core'un işaretleyici arayüzlerine (IEntity, IDto) ihtiyaç duyar.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\QuizArena.Core\QuizArena.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>QuizArena</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <!--
+    Oynanabilir demo arayüzü.
+
+    Neden çerçeve (framework) yok, neden tek dosya?
+    Bu arayüz projenin ürünü değil, API'nin çalıştığını GÖSTERME aracı.
+    React/Vue eklemek npm kurulumu, derleme adımı ve bakım yükü getirirdi;
+    projeyi inceleyen kişinin "dotnet run" dışında bir şey yapmasını gerektirirdi.
+    Ayrıca hiçbir CDN'e bağımlı değil: uygulama internet olmadan da çalışır ve
+    sıkı Content-Security-Policy başlığını ihlal etmez.
+  -->
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-icon">🧠</span>
+      <div>
+        <strong>QuizArena</strong>
+        <small>Çok oyunculu bilgi yarışması</small>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <a class="link" href="/swagger" target="_blank" rel="noopener">API dokümantasyonu</a>
+      <div id="userBadge" class="user-badge hidden">
+        <span id="userNickname"></span>
+        <span id="userScore" class="chip"></span>
+        <button id="logoutButton" class="btn btn-ghost btn-sm" type="button">Çıkış</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="app">
+    <!-- ============================ GİRİŞ ============================ -->
+    <section id="authScreen" class="screen">
+      <div class="card card-narrow">
+        <div class="tabs">
+          <button class="tab active" data-tab="login" type="button">Giriş yap</button>
+          <button class="tab" data-tab="register" type="button">Kayıt ol</button>
+        </div>
+
+        <form id="loginForm" class="form">
+          <label>E-posta
+            <input name="email" type="email" autocomplete="email" required>
+          </label>
+          <label>Parola
+            <input name="password" type="password" autocomplete="current-password" required>
+          </label>
+          <button class="btn btn-primary" type="submit">Giriş yap</button>
+        </form>
+
+        <form id="registerForm" class="form hidden">
+          <div class="grid-2">
+            <label>Ad
+              <input name="firstName" type="text" autocomplete="given-name" required>
+            </label>
+            <label>Soyad
+              <input name="lastName" type="text" autocomplete="family-name" required>
+            </label>
+          </div>
+          <label>Takma ad
+            <input name="nickname" type="text" minlength="3" maxlength="32" required>
+          </label>
+          <label>E-posta
+            <input name="email" type="email" autocomplete="email" required>
+          </label>
+          <label>Parola
+            <input name="password" type="password" autocomplete="new-password" minlength="8" required>
+            <small class="hint">En az 8 karakter; büyük harf, küçük harf ve rakam içermeli.</small>
+          </label>
+          <button class="btn btn-primary" type="submit">Kayıt ol ve başla</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============================ ANA SAYFA ============================ -->
+    <section id="homeScreen" class="screen hidden">
+      <div class="home-layout">
+        <div>
+          <div class="section-head">
+            <h2>Kategori seç</h2>
+            <p>Bir kategori seçip tek başına ya da arkadaşlarınla yarış.</p>
+          </div>
+          <div id="categoryGrid" class="category-grid"></div>
+
+          <div class="card">
+            <h3>Oyun ayarları</h3>
+            <div class="grid-3">
+              <label>Soru sayısı
+                <select id="questionCount">
+                  <option value="5">5 soru</option>
+                  <option value="10" selected>10 soru</option>
+                  <option value="15">15 soru</option>
+                  <option value="20">20 soru</option>
+                </select>
+              </label>
+              <label>Soru süresi
+                <select id="secondsPerQuestion">
+                  <option value="10">10 saniye</option>
+                  <option value="15">15 saniye</option>
+                  <option value="20" selected>20 saniye</option>
+                  <option value="30">30 saniye</option>
+                </select>
+              </label>
+              <label>Oyun kipi
+                <select id="roomMode">
+                  <option value="Solo" selected>Tek kişilik</option>
+                  <option value="PrivateMultiplayer">Kodla davet (özel)</option>
+                  <option value="PublicMultiplayer">Herkese açık oda</option>
+                </select>
+              </label>
+            </div>
+            <div class="row">
+              <button id="startGameButton" class="btn btn-primary" type="button" disabled>
+                Yarışmayı başlat
+              </button>
+              <div class="join-inline">
+                <input id="joinCodeInput" type="text" placeholder="Katılım kodu" maxlength="6"
+                       autocapitalize="characters" spellcheck="false">
+                <button id="joinRoomButton" class="btn btn-ghost" type="button">Odaya katıl</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-head-inline">
+              <h3>Açık odalar</h3>
+              <button id="refreshRoomsButton" class="btn btn-ghost btn-sm" type="button">Yenile</button>
+            </div>
+            <div id="openRooms" class="room-list"></div>
+          </div>
+        </div>
+
+        <aside class="sidebar">
+          <div class="card">
+            <h3>İstatistiklerim</h3>
+            <div id="myStats" class="stats"></div>
+          </div>
+
+          <div class="card">
+            <h3>🏆 Sıralama</h3>
+            <ol id="leaderboard" class="leaderboard"></ol>
+          </div>
+
+          <div class="card">
+            <h3>Rozetlerim</h3>
+            <div id="myAchievements" class="badges"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============================ LOBİ ============================ -->
+    <section id="lobbyScreen" class="screen hidden">
+      <div class="card card-narrow">
+        <h2 id="lobbyTitle">Oyuncular bekleniyor</h2>
+        <p class="muted">Arkadaşların bu kodla odaya katılabilir:</p>
+        <div class="join-code" id="lobbyJoinCode">------</div>
+        <div id="lobbyParticipants" class="participant-list"></div>
+        <div class="row">
+          <button id="lobbyStartButton" class="btn btn-primary" type="button">Yarışmayı başlat</button>
+          <button id="lobbyCancelButton" class="btn btn-ghost" type="button">Odayı iptal et</button>
+        </div>
+        <small class="hint">Oda durumu birkaç saniyede bir yenilenir.</small>
+      </div>
+    </section>
+
+    <!-- ============================ OYUN ============================ -->
+    <section id="gameScreen" class="screen hidden">
+      <div class="game-layout">
+        <div class="card">
+          <div class="game-head">
+            <span id="questionProgress" class="chip"></span>
+            <span id="questionDifficulty" class="chip"></span>
+            <span id="streakBadge" class="chip chip-fire hidden"></span>
+            <span id="gameScore" class="score"></span>
+          </div>
+
+          <div class="timer">
+            <div id="timerBar" class="timer-bar"></div>
+          </div>
+          <div id="timerText" class="timer-text"></div>
+
+          <h2 id="questionText" class="question"></h2>
+          <div id="optionList" class="options"></div>
+
+          <div id="answerFeedback" class="feedback hidden"></div>
+        </div>
+
+        <aside class="sidebar" id="liveScoreboardCard">
+          <div class="card">
+            <h3>Canlı skor</h3>
+            <ol id="liveScoreboard" class="leaderboard"></ol>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============================ SONUÇ ============================ -->
+    <section id="resultScreen" class="screen hidden">
+      <div class="card card-narrow result-card">
+        <div id="resultEmoji" class="result-emoji">🎉</div>
+        <h2 id="resultTitle">Yarışma tamamlandı</h2>
+        <div id="resultScore" class="result-score"></div>
+        <div id="resultStats" class="stats"></div>
+        <div id="newAchievements" class="badges"></div>
+        <div id="resultScoreboardWrapper" class="hidden">
+          <h3>Skor tablosu</h3>
+          <ol id="resultScoreboard" class="leaderboard"></ol>
+        </div>
+        <button id="playAgainButton" class="btn btn-primary" type="button">Ana sayfaya dön</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

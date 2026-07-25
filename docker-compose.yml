@@ -1,0 +1,63 @@
+# =============================================================================
+#  QuizArena — yerel/demo ortamı
+#
+#  Kullanım:
+#     1) .env.example dosyasını .env olarak kopyalayın ve değerleri doldurun
+#     2) docker compose up --build
+#
+#  Gizli bilgiler (SA parolası, JWT anahtarı, admin parolası) BU DOSYADA
+#  BULUNMAZ; .env üzerinden gelir ve .env depoya girmez (.gitignore).
+# =============================================================================
+
+services:
+  veritabani:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: quizarena-db
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?MSSQL_SA_PASSWORD tanimlanmali (.env)}
+      MSSQL_PID: Developer
+    ports:
+      # Yalnızca 127.0.0.1'e bağlanır: veritabanı ağdaki diğer makinelere açılmaz.
+      - "127.0.0.1:1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    healthcheck:
+      # API, veritabanı GERÇEKTEN sorgu kabul edene kadar başlamamalı.
+      # Sadece "konteyner ayakta" kontrolü yetmez: SQL Server ilk açılışta
+      # birkaç saniye bağlantı kabul etmez ve API şema oluştururken patlar.
+      test:
+        - CMD-SHELL
+        - /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -C -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quizarena-api
+    depends_on:
+      veritabani:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      # MARS (MultipleActiveResultSets) bilinçli olarak yok: açık olduğunda
+      # EF Core savepoint'leri devre dışı bırakır ve transaction hata aldığında
+      # temiz duruma dönemez.
+      ConnectionStrings__QuizArena: >-
+        Server=veritabani,1433;Database=QuizArenaDb;User Id=sa;Password=${MSSQL_SA_PASSWORD};
+        TrustServerCertificate=True
+      TokenOptions__SecurityKey: ${JWT_SECURITY_KEY:?JWT_SECURITY_KEY tanimlanmali (.env)}
+      Seed__AdminPassword: ${SEED_ADMIN_PASSWORD:-}
+      Seed__CreateDemoPlayers: "true"
+      Cors__AllowedOrigins__0: http://localhost:8080
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  mssql-data:

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    DAL = veri erişim katmanı. Yalnızca "veriyi nasıl saklıyoruz" sorusunu
+    cevaplar. İş kuralı içermez; BLL'i tanımaz (bağımlılık tek yönlü:
+    BLL → DAL → Entities/Core).
+  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+
+    <!--
+      Design: 'dotnet ef migrations' komutunun tasarım zamanında DbContext'i
+      keşfetmesi için gerekli. PrivateAssets=all → yayınlanan çıktıya
+      kopyalanmaz; üretim ortamında migration aracı bulunmaz.
+    -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QuizArena.Core\QuizArena.Core.csproj" />
+    <ProjectReference Include="..\QuizArena.Entities\QuizArena.Entities.csproj" />
+  </ItemGroup>
+
+</Project>

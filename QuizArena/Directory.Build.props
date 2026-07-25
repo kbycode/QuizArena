@@ -1,0 +1,56 @@
+<Project>
+
+  <!--
+    Tüm projeler için ortak derleme ayarları.
+    Buradaki her ayarı tek tek .csproj dosyalarına yazmak yerine merkezî
+    tutuyoruz; yeni bir katman eklendiğinde ayar tekrarı olmuyor.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>false</InvariantGlobalization>
+
+    <!-- Tekrarlanabilir (deterministic) çıktı: aynı kaynak = aynı binary -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+
+    <!-- Kod analizi: .NET'in önerdiği kural seti açık -->
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+    <!-- Derleme çıktısında makineye özgü mutlak yol bırakmamak için -->
+    <PathMap Condition="'$(CI)' == 'true'">$(MSBuildThisFileDirectory)=/src/</PathMap>
+
+    <!-- Güvenlik açığı bildirilen bir paket varsa derleme patlasın -->
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <NuGetAuditLevel>moderate</NuGetAuditLevel>
+    <WarningsAsErrors>NU1901;NU1902;NU1903;NU1904</WarningsAsErrors>
+
+    <!--
+      Bilinçli olarak kapatılan analiz kuralları. Her biri için gerekçe:
+
+      CA1848  LoggerMessage temsilcisi kullan. Yalnızca saniyede on binlerce
+              log yazan sıcak yollarda ölçülebilir kazanç verir. Buradaki
+              loglar hata/uyarı yollarında olduğu için kazanç sıfıra yakın,
+              maliyeti ise her log satırı için ayrı bir partial metot
+              tanımlamak — okunabilirliği ciddi biçimde düşürür.
+      CA1716  'Set' gibi adlar başka .NET dillerinde anahtar sözcükle çakışır.
+              Framework'ün kendisi de IMemoryCache.Set kullanıyor; tutarlılık
+              yeniden adlandırmadan değerli.
+      CA1000  Jenerik tipte statik üye bildirme. PagedList<T>.Empty gibi
+              fabrika metotları bu kuralın hedeflediği sorunu üretmiyor.
+      CA2007  ConfigureAwait(false). ASP.NET Core'da SynchronizationContext
+              yoktur; her await'e eklemek gürültüden başka bir şey değil.
+      CA1062  Genel metotlarda argüman null kontrolü. Argüman doğrulaması
+              FluentValidation ve ArgumentNullException.ThrowIfNull ile
+              zaten yapılıyor.
+    -->
+    <NoWarn>$(NoWarn);CA1848;CA1716;CA1000;CA2007;CA1062</NoWarn>
+
+    <NeutralLanguage>tr-TR</NeutralLanguage>
+  </PropertyGroup>
+
+</Project>

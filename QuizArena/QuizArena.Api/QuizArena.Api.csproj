@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <!-- Swagger'ın XML yorumlarını okuyup uçları belgeleyebilmesi için -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- CS1591: her genel üye için XML yorumu zorunluluğu; controller'larda gereksiz gürültü -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+
+    <!-- Gizli bilgiler (JWT imza anahtarı, admin parolası) için user-secrets kimliği -->
+    <UserSecretsId>quizarena-api</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QuizArena.BLL\QuizArena.BLL.csproj" />
+  </ItemGroup>
+
+</Project>

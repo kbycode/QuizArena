@@ -1,0 +1,30 @@
+{
+  "_note": [
+    "Bu dosya bir ÖRNEKTİR. Kullanmak için 'appsettings.Development.json' adıyla kopyalayın.",
+    "appsettings.Development.json .gitignore'da olduğu için depoya girmez —",
+    "yerel bağlantı dizeleriniz ve anahtarlarınız sizde kalır.",
+    "",
+    "Alternatif (önerilen): gizli değerleri dosya yerine user-secrets ile verin:",
+    "  dotnet user-secrets set \"TokenOptions:SecurityKey\" \"...\"",
+    "  dotnet user-secrets set \"Seed:AdminPassword\" \"...\""
+  ],
+
+  "_marsNote": [
+    "Bağlantı dizesine MultipleActiveResultSets=true EKLEMEYİN.",
+    "Açık olduğunda EF Core savepoint'leri devre dışı bırakır; transaction",
+    "hata aldığında bilinen temiz duruma otomatik geri dönemez.",
+    "Bu projedeki tüm sorgular sırayla await edildiği için MARS'a ihtiyaç yok."
+  ],
+
+  "ConnectionStrings": {
+    "QuizArena": "Server=(localdb)\\MSSQLLocalDB;Database=QuizArenaDb;Trusted_Connection=True;TrustServerCertificate=True"
+  },
+
+  "TokenOptions": {
+    "SecurityKey": "BURAYA-EN-AZ-32-KARAKTERLIK-RASTGELE-BIR-ANAHTAR-YAZIN"
+  },
+
+  "Seed": {
+    "AdminPassword": "BURAYA-GUCLU-BIR-PAROLA-YAZIN"
+  }
+}

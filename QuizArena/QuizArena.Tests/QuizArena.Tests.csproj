@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+
+    <!--
+      Test projesine özgü olarak kapatılan kurallar:
+
+      CS1591  XML dokümantasyon zorunluluğu — test metotlarının adı zaten
+              beklenen davranışı anlatıyor.
+      CA1707  İsimde alt çizgi — test adları bilinçli olarak
+              "Dogru_cevap_puan_kazandirir" biçiminde, cümle gibi okunuyor.
+      CA1859  Somut tip kullan — testler ARAYÜZ üzerinden çalışmalı; üretim
+              kodu servisi nasıl görüyorsa test de öyle görsün. Somut tipe
+              geçmek, arayüz sözleşmesinin test edilmesini engellerdi.
+    -->
+    <NoWarn>$(NoWarn);CS1591;CA1707;CA1859</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="coverlet.collector" />
+
+    <!--
+      Testlerde SQLite (bellek içi) kullanılıyor, SQL Server değil.
+      Neden InMemory sağlayıcısı değil: InMemory ilişkisel bir veritabanı
+      değildir; tekil kısıtları, yabancı anahtarları ve transaction'ları
+      uygulamaz. Bu projedeki en kritik güvenceler (aynı soruya ikinci cevabı
+      engelleyen tekil indeks gibi) tam olarak bu kısıtlara dayanıyor —
+      InMemory ile test etmek onları test etmemek olurdu.
+    -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QuizArena.BLL\QuizArena.BLL.csproj" />
+  </ItemGroup>
+
+</Project>

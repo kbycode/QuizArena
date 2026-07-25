@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Core = teknik altyapı katmanı. İş kuralı BİLMEZ.
+    Buradaki hiçbir sınıf "yarışma", "oda", "soru" gibi kavramlardan haberdar
+    değildir; bu katman bir sonraki projede de aynen kullanılabilir.
+    Bağımlılık yönü: Core hiçbir katmana referans vermez, herkes Core'a verir.
+  -->
+  <ItemGroup>
+    <!-- IHttpContextAccessor, ProblemDetails, middleware tipleri için -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" />
+    <PackageReference Include="Autofac.Extras.DynamicProxy" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+  </ItemGroup>
+
+</Project>
