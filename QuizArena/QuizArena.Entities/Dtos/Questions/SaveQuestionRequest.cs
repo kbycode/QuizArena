@@ -7,9 +7,9 @@ namespace QuizArena.Entities.Dtos.Questions;
 /// Soru + seçenekleri tek istekte oluşturur.
 /// </summary>
 /// <remarks>
-/// Soru ve seçeneklerin ayrı uçlardan eklenmesi (ilk hâldeki durum), "soru
-/// eklendi ama seçenekler eklenmeden istek koptu" gibi <b>yarım kayıtlar</b>
-/// üretir; böyle bir soru yarışmada çıktığında cevaplanamaz. Tek istek +
+/// Soru ve seçenekler <b>tek istekte</b> gider. Ayrı uçlardan eklenselerdi
+/// "soru eklendi ama seçenekler eklenmeden istek koptu" gibi yarım kayıtlar
+/// oluşur; böyle bir soru yarışmada çıktığında cevaplanamaz. Tek istek ve
 /// transaction bu durumu imkânsız kılar.
 /// </remarks>
 public sealed record CreateQuestionRequest(

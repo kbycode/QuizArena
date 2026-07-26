@@ -16,11 +16,10 @@ namespace QuizArena.Api.Controllers;
 /// yarışma öncesi tüm cevap anahtarını indirebilirdi.
 /// </para>
 /// <para>
-/// Orijinal projede <c>QuestionsController</c> ve <c>AnswersController</c>
-/// tamamen açıktı; <c>GET /api/answers/getall</c> çağrısı her şıkkın
-/// <c>isTrue</c> değerini döndürüyordu. Ayrı bir <c>AnswersController</c>
-/// artık yok: şıklar sorunun bir parçası olarak, soruyla aynı işlemde
-/// yönetiliyor — böylece şıksız (cevaplanamaz) soru oluşturmak imkânsız.
+/// Şıklar için <b>ayrı bir controller yok</b>, bu bilinçli: şıklar sorunun
+/// parçası olarak, soruyla aynı işlemde yönetilir. Ayrı bir uç iki kapı
+/// birden açardı — şıksız (cevaplanamaz) soru oluşturmak ve cevap anahtarını
+/// ikinci bir yerden sızdırmak.
 /// </para>
 /// </remarks>
 [Route("api/[controller]")]

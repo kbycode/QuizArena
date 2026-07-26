@@ -9,10 +9,10 @@ namespace QuizArena.BLL.Abstract;
 /// Yarışma akışı: soru sun, cevabı doğrula, puanla, bitir.
 /// </summary>
 /// <remarks>
-/// Bu servis, projenin ilk hâlinde <b>hiç var olmayan</b> parçadır. Önceki
-/// kodda "yarışma" yalnızca CRUD tabloları olarak duruyordu; soruyu kimin
-/// hangi sırayla göreceği, sürenin nasıl ölçüleceği ve puanın nasıl
-/// hesaplanacağı hiçbir yerde tanımlı değildi.
+/// Yarışmanın <b>bütün</b> kuralları burada toplanır: soruyu kimin hangi
+/// sırayla göreceği, sürenin nasıl ölçüleceği, puanın nasıl hesaplanacağı.
+/// Bu sorular veri modelinde yanıtlanamaz — tablolar ve CRUD uçları bir
+/// oyunu tarif etmeye yetmez, yalnızca saklar.
 /// </remarks>
 public interface IGameService
 {

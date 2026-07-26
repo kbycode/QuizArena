@@ -7,13 +7,12 @@ namespace QuizArena.Entities.Dtos.Users;
 /// sahibine (veya yöneticiye) döner.
 /// </summary>
 /// <remarks>
-/// <b>Bu DTO'nun varlık sebebi doğrudan bir güvenlik açığının kapatılmasıdır.</b>
-/// Projenin ilk hâlinde <c>UsersController</c>, <c>User</c> varlığını olduğu
-/// gibi JSON'a çeviriyordu; yanıtta <c>passwordHash</c> ve <c>passwordSalt</c>
-/// alanları <b>Base64 hâlinde açıkça yer alıyordu</b>. Yani tek bir
-/// <c>GET /api/users/getall</c> çağrısı, tüm kullanıcıların parola özetlerini
-/// çevrimdışı kırma denemesine hazır biçimde teslim ediyordu.
-/// Varlıklar artık hiçbir uçtan doğrudan dönmüyor.
+/// <b>Varlıklar hiçbir uçtan doğrudan dönmez; bu DTO o kuralın gereğidir.</b>
+/// <c>User</c> varlığı olduğu gibi JSON'a çevrilseydi yanıtta
+/// <c>passwordHash</c> ve <c>passwordSalt</c> alanları Base64 hâlinde yer
+/// alır; tek bir liste çağrısı, tüm kullanıcıların parola özetlerini
+/// çevrimdışı kırma denemesine hazır biçimde teslim ederdi. Alanlar burada
+/// elle seçilir.
 /// </remarks>
 public sealed record UserProfileResponse(
     Guid Id,

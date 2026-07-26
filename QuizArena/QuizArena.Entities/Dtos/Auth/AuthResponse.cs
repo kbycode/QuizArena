@@ -7,11 +7,9 @@ namespace QuizArena.Entities.Dtos.Auth;
 /// Başarılı kimlik doğrulama yanıtı.
 /// </summary>
 /// <remarks>
-/// Projenin ilk hâlinde <c>AuthController.Login</c> doğrudan
-/// <c>AccessToken</c> nesnesini dönüyordu ve istemci kullanıcı bilgisini
-/// alabilmek için ayrı bir istek atmak zorundaydı. Burada jeton + profil tek
-/// yanıtta veriliyor; ancak profil DTO'su <b>hiçbir koşulda</b> parola
-/// özeti/tuzu içermiyor.
+/// Jeton ve profil <b>tek yanıtta</b> döner; istemcinin kullanıcı bilgisi
+/// için ikinci bir istek atması gerekmez. Profil DTO'su <b>hiçbir koşulda</b>
+/// parola özeti veya tuzu içermez.
 /// </remarks>
 public sealed record AuthResponse(
     string AccessToken,

@@ -10,7 +10,7 @@ namespace QuizArena.Core.DataAccess;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Projenin ilk hâlindeki sürüme göre değişenler ve <b>nedenleri</b>:
+/// Bu sözleşmedeki her karar ve <b>nedeni</b>:
 /// </para>
 /// <list type="number">
 ///   <item>

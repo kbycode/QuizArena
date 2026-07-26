@@ -33,7 +33,7 @@ public sealed class ValidatorTests
     [InlineData("RakamYokBurada", "rakam yok")]
     public void Zayif_parola_reddedilir(string password, string reason)
     {
-        // Orijinal projede hiç doğrulama yoktu: "1" parolasıyla kayıt olunabiliyordu.
+        // Politika olmasa "1" gibi bir parolayla kayıt mümkün olurdu.
         ValidationResult result = new RegisterRequestValidator()
             .Validate(ValidRegistration() with { Password = password });
 

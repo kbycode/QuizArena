@@ -20,19 +20,31 @@ Gerçek zamanlı odalar · sunucu otoriteli puanlama · tasarımdan gelen hile d
 
 ---
 
-QuizArena, oyuncuların tek başına ya da sekiz kişiye kadar odalarda yarıştığı bir
-bilgi yarışması arka ucudur. Sorular süreli gelir, puanlama hem hızı hem zorluğu
-ödüllendirir ve önemli olan her kural **sunucuda** uygulanır — hiçbiri istemciye
-bırakılmaz.
+<div align="center">
+  <img src="docs/screenshots/game.png" alt="Oyun ekranı: süreli soru, zorluk etiketi, canlı puan ve dört şık" width="900">
+</div>
 
-`wwwroot` altında **bağımlılıksız, oynanabilir bir web istemcisi** ile gelir:
-`dotnet run` deyip saniyeler içinde tarayıcıda oynamaya başlarsınız. npm yok,
-derleme adımı yok, CDN yok.
+**Tek komutla çalışan bir bilgi yarışması.** Depoyu al, `dotnet run` de, tarayıcıda
+oynamaya başla — npm yok, derleme adımı yok, CDN yok. Oynanabilir istemci
+`wwwroot` içinde, düz HTML, CSS ve JavaScript olarak geliyor.
 
-> Bu proje yarım kalmış bir CRUD iskeleti olarak başladı. Özgün katmanlı (N-tier)
-> mimarisi korunarak eksiksiz, test edilmiş ve güvenlik açısından sertleştirilmiş
-> bir uygulamaya dönüştürüldü. Kapatılan açıkların tamamı
-> [güvenlik bölümünde](#güvenlik) belgelenmiştir.
+Okumaya değer kılan üç şey:
+
+- **Doğru cevap tarayıcıya hiç ulaşmıyor.** Ne soru yanıtında, ne gizli bir
+  alanda, ne de ikinci bir uçta. Yalnızca sen cevapladıktan sonra geliyor.
+- **Süreyi sunucu tutuyor.** Geçen zaman, sorunun sunulduğu yerde ölçülüyor;
+  donmuş bir sekme ya da değiştirilmiş sistem saati hiçbir şey kazandırmıyor.
+- **Puanlama hızı ve zorluğu birlikte ödüllendiriyor**; formülün tamamı saf bir
+  fonksiyon ve kendi test kümesi var — bütün sınır değerleri kapsanmış.
+
+<div align="center">
+  <img src="docs/screenshots/home.png" alt="Ana ekran: kategori seçimi, oyun ayarları, açık odalar, istatistikler ve sıralama" width="900">
+</div>
+
+> Ekran görüntüleri paketteki demo verisinden alındı; sayılar örnektir.
+> Aşağıdaki her sertleştirme kararı, değiştirdiği ayarla değil **kapattığı
+> saldırıyla** birlikte belgelenmiştir; ayrıntısı
+> [güvenlik bölümünde](#güvenlik).
 
 ---
 

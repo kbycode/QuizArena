@@ -10,31 +10,26 @@ namespace QuizArena.Api.Controllers;
 /// <summary>Kullanıcı profili ve (yönetici için) hesap yönetimi.</summary>
 /// <remarks>
 /// <para>
-/// <b>Bu controller, projedeki en ağır güvenlik açığının bulunduğu yerdi.</b>
-/// Orijinal hâlinde:
+/// <b>Sistemdeki en hassas veri burada:</b> hesap kayıtları. Üç kural bir
+/// arada uygulanır ve her biri somut bir saldırıyı kapatır.
 /// </para>
 /// <list type="bullet">
 ///   <item>
-///     <c>GET /api/users/getall</c> — <c>[Authorize]</c> vardı ama
-///     <c>User</c> varlığını doğrudan döndürüyordu; yanıtta tüm kullanıcıların
-///     <c>passwordHash</c> ve <c>passwordSalt</c> alanları Base64 hâlinde
-///     yer alıyordu.
+///     <b>Sınıf düzeyinde <c>[Authorize]</c>.</b> Kimliği doğrulanmamış hiçbir
+///     istek hiçbir uca ulaşamaz.
 ///   </item>
 ///   <item>
-///     <c>getbyid</c> / <c>getlistbyid</c> — <b>hiçbir yetkilendirme yoktu</b>;
-///     aynı sızıntı kimlik doğrulaması olmadan da erişilebilirdi.
+///     <b>Yönetici uçlarında ayrıca rol kontrolü.</b> Oturum açmış olmak,
+///     başkasının hesabını yönetmeye yetmez.
 ///   </item>
 ///   <item>
-///     <c>POST /api/users/add|update|delete</c> — <b>hiçbir yetkilendirme
-///     yoktu</b> ve gövde doğrudan <c>User</c> varlığına bağlanıyordu.
-///     Yani anonim bir istek gövdeye <c>passwordHash</c> yazarak herhangi
-///     bir hesabın parolasını değiştirebilir ya da hesabı silebilirdi.
+///     <b>Girdi ve çıktıda alanları elle seçilmiş DTO'lar.</b> İstek gövdesi
+///     doğrudan <c>User</c> varlığına bağlansaydı, gövdeye
+///     <c>passwordHash</c> yazan biri herhangi bir hesabın parolasını
+///     değiştirebilirdi (over-posting). Varlık yanıt olarak dönseydi parola
+///     özeti ve tuzu Base64 hâlinde istemciye sızardı.
 ///   </item>
 /// </list>
-/// <para>
-/// Şimdi: sınıf düzeyinde <c>[Authorize]</c>, yönetici uçlarında ayrıca rol
-/// kontrolü, girdi/çıktı için alanları elle seçilmiş DTO'lar.
-/// </para>
 /// </remarks>
 [Route("api/[controller]")]
 [Authorize]

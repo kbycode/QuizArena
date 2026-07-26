@@ -16,9 +16,9 @@ public static class AuthenticationServiceExtensions
             .AddJwtBearer(options =>
             {
                 // Ayarlar, DI'a kayıtlı ve açılışta doğrulanmış TokenOptions'tan
-                // okunur. Orijinal kodda 'Configuration.Get<TokenOptions>()'
-                // sonucu null kontrolü olmadan kullanılıyordu: ayar eksikse
-                // NullReferenceException ile açılış patlıyordu.
+                // okunur. 'Configuration.Get<TokenOptions>()' sonucunu null
+                // kontrolü olmadan kullanmak, ayar eksik olduğunda açılışı
+                // NullReferenceException ile düşürürdü.
                 options.TokenValidationParameters = BuildValidationParameters(services);
 
                 // Süresi geçmiş jeton için istemciye net bir sinyal ver:

@@ -13,7 +13,7 @@ namespace QuizArena.Api.Controllers;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Orijinal koddaki her controller metodu şu kalıbı tekrarlıyordu:
+/// Amaç, controller metotlarının şu kalıbı tekrarlamasını önlemek:
 /// </para>
 /// <code>
 /// var result = _service.GetList();
@@ -21,12 +21,12 @@ namespace QuizArena.Api.Controllers;
 /// return BadRequest(result.Message);
 /// </code>
 /// <para>
-/// Bu kalıbın iki sorunu vardı: (1) 13 controller × 6 metot = 78 kez
-/// tekrarlanıyordu, (2) her hatayı <c>400 Bad Request</c> yapıyordu —
-/// "kayıt bulunamadı" için 404, "yetkin yok" için 403 dönmesi gerekirken.
-/// Doğru durum kodu artık istisna tipine göre
-/// <c>ExceptionHandlingMiddleware</c> tarafından seçiliyor; burada kalan
-/// tek iş, başarılı sonucu paketlemek.
+/// Bu kalıbın iki sorunu var. Birincisi, controller sayısı × metot sayısı
+/// kadar tekrarlanır. İkincisi ve daha önemlisi, <b>her</b> hatayı
+/// <c>400 Bad Request</c>'e indirger — oysa "kayıt bulunamadı" 404,
+/// "yetkin yok" 403 olmalıdır. Doğru durum kodu istisna tipine göre
+/// <c>ExceptionHandlingMiddleware</c> tarafından seçilir; buraya kalan tek
+/// iş, başarılı sonucu paketlemek.
 /// </para>
 /// </remarks>
 [ApiController]

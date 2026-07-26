@@ -12,30 +12,28 @@ namespace QuizArena.Core.DataAccess.EntityFramework;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Buradaki en önemli değişiklik:</b> projenin ilk hâlinde her metot
-/// <c>using (var context = new TContext())</c> ile <b>kendi</b> DbContext'ini
-/// yaratıyordu. Bunun üç somut sonucu vardı:
+/// <b>DbContext dışarıdan verilir</b> — DI ile, istek başına <c>Scoped</c>.
+/// Repository kendi bağlamını yaratmaz. Her metodun
+/// <c>using (var context = new TContext())</c> ile kendi bağlamını açması
+/// üç somut soruna yol açardı:
 /// </para>
 /// <list type="number">
 ///   <item>
-///     <b>Transaction imkânsızdı.</b> İki repository çağrısı iki ayrı bağlantı
-///     kullandığı için "ikisi birlikte olsun ya da hiçbiri olmasın" garantisi
-///     verilemiyordu. Yarışma bitirme akışı yarım kalabilirdi.
+///     <b>Transaction imkânsız hâle gelir.</b> İki repository çağrısı iki ayrı
+///     bağlantı kullandığında "ikisi birlikte olsun ya da hiçbiri olmasın"
+///     garantisi verilemez; yarışma bitirme akışı yarım kalabilir.
 ///   </item>
 ///   <item>
-///     <b>Bağlantı dizesi koda gömülüydü.</b> <c>OnConfiguring</c> içinde sabit
-///     yazılan sunucu adı, uygulamanın başka bir makinede/ortamda
-///     yapılandırılmasını imkânsız kılıyordu.
+///     <b>Bağlantı dizesi koda gömülür.</b> <c>OnConfiguring</c> içine sabit
+///     yazılan sunucu adı, uygulamanın başka bir makinede veya ortamda
+///     yapılandırılmasını imkânsız kılar.
 ///   </item>
 ///   <item>
-///     <b>Kimlik (identity) çakışması.</b> Bir metotta çekilen varlık başka bir
-///     metodun context'inde "yabancı" olduğu için <c>Update</c> sırasında
-///     izlenmeyen varlık hataları ve gereksiz tam-satır güncellemeleri oluşuyordu.
+///     <b>Kimlik (identity) çakışır.</b> Bir metotta çekilen varlık başka bir
+///     metodun bağlamında "yabancı" olur; <c>Update</c> sırasında izlenmeyen
+///     varlık hataları ve gereksiz tam-satır güncellemeleri oluşur.
 ///   </item>
 /// </list>
-/// <para>
-/// Artık DbContext dışarıdan (DI ile, istek başına <c>Scoped</c>) verilir.
-/// </para>
 /// </remarks>
 public abstract class EfEntityRepositoryBase<TEntity, TContext> : IEntityRepository<TEntity>
     where TEntity : class, IEntity

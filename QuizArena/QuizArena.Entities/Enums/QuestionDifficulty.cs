@@ -4,10 +4,9 @@ namespace QuizArena.Entities.Enums;
 /// Soru zorluğu. Puanlamada çarpan olarak kullanılır.
 /// </summary>
 /// <remarks>
-/// Projenin ilk hâlinde bu tür ayrımlar <c>int Type</c> alanlarıyla
-/// tutuluyordu. <c>room.Type = 2</c> satırını okuyan hiç kimse 2'nin ne
-/// olduğunu bilemez; enum ise hem kendini belgeler hem de derleyicinin
-/// geçersiz değeri yakalamasına imkân verir.
+/// Zorluk <c>int</c> değil <b>enum</b>: <c>question.Type = 2</c> satırını
+/// okuyan hiç kimse 2'nin ne olduğunu bilemez. Enum hem kendini belgeler hem
+/// de geçersiz değeri derleyiciye yakalatır.
 /// </remarks>
 public enum QuestionDifficulty
 {

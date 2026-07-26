@@ -8,8 +8,9 @@ namespace QuizArena.BLL.Validation;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Projenin ilk hâlinde <b>hiçbir doğrulama yoktu</b>: <c>"1"</c> parolasıyla
-/// ya da e-posta alanına <c>"asdf"</c> yazarak kayıt olmak mümkündü.
+/// Politika tek yerde tanımlı; kayıt ve parola değiştirme aynı kuralı okur.
+/// İki yerde ayrı tanımlansaydı biri güncellenip diğeri unutulduğunda
+/// sistemde iki farklı parola gücü oluşurdu.
 /// </para>
 /// <para>
 /// Kural seti NIST SP 800-63B önerisine yakın tutuldu: <b>uzunluk</b> en

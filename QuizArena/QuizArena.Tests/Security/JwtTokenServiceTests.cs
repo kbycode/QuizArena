@@ -76,7 +76,7 @@ public sealed class JwtTokenServiceTests
     [Fact]
     public void Jeton_omru_her_uretimde_yeniden_hesaplanir()
     {
-        // Orijinal JwtHelper, bitiş zamanını KURUCUDA bir kez hesaplıyordu.
+        // Bitiş zamanı kurucuda bir kez hesaplansaydı burada sabit kalırdı.
         // Servis uzun ömürlü olduğunda tüm jetonlar aynı, giderek geçmişe
         // kayan bitiş tarihini taşıyordu. Bu test o hatanın geri gelmesini
         // engeller.

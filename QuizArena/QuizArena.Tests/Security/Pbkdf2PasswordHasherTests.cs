@@ -105,8 +105,8 @@ public sealed class Pbkdf2PasswordHasherTests
     [Fact]
     public void Farkli_uzunluktaki_ozet_indeks_hatasi_uretmez()
     {
-        // Orijinal koddaki VerifyPasswordHash, özet uzunlukları farklıysa
-        // IndexOutOfRangeException atıyordu. FixedTimeEquals bunu yapmaz.
+        // Bayt bayt karşılaştırma, özet uzunlukları farklı olduğunda
+        // IndexOutOfRangeException atardı. FixedTimeEquals atmaz.
         var hasher = CreateHasher();
         string shortHash = $"pbkdf2-sha256${TestIterations}${Convert.ToBase64String(new byte[16])}${Convert.ToBase64String(new byte[8])}";
 

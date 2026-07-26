@@ -9,16 +9,17 @@ namespace QuizArena.Api.Controllers;
 /// <summary>Yetki tanımları ve kullanıcı-yetki atamaları.</summary>
 /// <remarks>
 /// <para>
-/// <b>Bu controller orijinal projede tamamen açıktı.</b> Yani kimliği
-/// doğrulanmamış herhangi bir istemci
-/// <c>POST /api/useroperationclaims/add</c> çağrısıyla <b>kendisine Admin
-/// yetkisi atayabiliyordu</b> — tek istekle tam yönetici olmak mümkündü.
+/// <b>Yetki dağıtabilmek, kendine yetki verebilmek demektir.</b> Korumasız
+/// bir yetki atama ucu, tek istekle tam yönetici olunabilen bir kapıdır; bu
+/// yüzden controller'ın tamamı yalnızca <c>Admin</c> rolüne açıktır.
+/// <c>User.Manage</c> hesabı açıp kapatmaya yeter, yetki dağıtmaya yetmez.
 /// </para>
 /// <para>
-/// Artık hem controller düzeyinde <c>[Authorize(Roles = Admin)]</c> hem de
-/// iş katmanında <c>[SecuredOperationAspect(Roles.Admin)]</c> var (katmanlı
-/// savunma). Ek olarak sistem yetkileri silinemez/yeniden adlandırılamaz ve
-/// yönetici kendi Admin yetkisini kaldıramaz.
+/// Kısıt <b>iki katmanda</b> tanımlı: burada
+/// <c>[Authorize(Roles = Admin)]</c>, iş metodunda
+/// <c>[SecuredOperationAspect(Roles.Admin)]</c>. Ek olarak sistem yetkileri
+/// silinemez/yeniden adlandırılamaz ve yönetici kendi <c>Admin</c> yetkisini
+/// kaldıramaz — ikisi de sisteme erişimin kalıcı kaybını önler.
 /// </para>
 /// </remarks>
 [Route("api/[controller]")]

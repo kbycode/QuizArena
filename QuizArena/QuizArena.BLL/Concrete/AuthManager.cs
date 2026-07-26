@@ -23,36 +23,34 @@ namespace QuizArena.BLL.Concrete;
 /// </summary>
 /// <remarks>
 /// <para>
-/// İlk hâldeki <c>AuthManager</c>'a göre kapatılan açıklar:
+/// Kimlik doğrulamada uygulanan beş kural — her biri somut bir saldırıya
+/// veya arıza biçimine karşı:
 /// </para>
 /// <list type="number">
 ///   <item>
-///     <b><c>NullReferenceException</c> ile çöken giriş:</b> önceki kod
-///     <c>VerifyPasswordHash(dto.Password, user.PasswordHash, user.PasswordSalt)</c>
-///     çağrısını, alanlar <c>null</c> olabilecekken yapıyordu. Parolasız
-///     oluşturulmuş bir kullanıcı (ki <c>UsersController.Add</c> ile bu
-///     mümkündü) girişte 500 hatası üretiyordu.
+///     <b>Parola alanları <c>null</c> olabilir kabul edilir.</b> Parola özeti
+///     taşımayan bir kayıt, doğrulamada sessizce reddedilir; aksi hâlde
+///     böyle bir kullanıcı girişte <c>NullReferenceException</c> ile 500
+///     üretirdi.
 ///   </item>
 ///   <item>
-///     <b>Kullanıcı numaralandırma:</b> "Kullanıcı bulunamadı" ve "Parola
-///     eşleşmiyor" farklı mesajlardı; saldırgan hangi e-postaların kayıtlı
-///     olduğunu tek tek öğrenebiliyordu. Artık tek mesaj dönüyor.
+///     <b>Kullanıcı numaralandırmaya kapalı.</b> "Kullanıcı bulunamadı" ve
+///     "parola eşleşmiyor" <b>aynı</b> mesajı döner. Farklı olsalardı
+///     saldırgan hangi e-postaların kayıtlı olduğunu tek tek öğrenebilirdi.
 ///   </item>
 ///   <item>
-///     <b>Kaba kuvvet koruması yoktu:</b> parola sınırsız denenebiliyordu.
-///     Artık başarısız denemeler sayılıyor ve hesap geçici olarak kilitleniyor.
+///     <b>Kaba kuvvet sayılır.</b> Başarısız denemeler kaydedilir ve hesap
+///     geçici olarak kilitlenir.
 ///   </item>
 ///   <item>
-///     <b>Kayıt sırasında e-posta tekilliği kontrolü çağrı sırasına bağlıydı:</b>
-///     controller önce <c>UserExists</c> çağırıyor, sonra <c>Register</c>
-///     yapıyordu; ikisi arasında aynı e-postayla gelen ikinci istek
-///     kontrolü atlatabiliyordu. Kontrol artık servisin içinde ve son
-///     güvence veritabanındaki tekil indekste.
+///     <b>E-posta tekilliği servisin içinde kontrol edilir</b>, çağıranda
+///     değil. "Önce kontrol et, sonra kaydet" iki ayrı çağrıya bölündüğünde
+///     araya giren ikinci bir istek kontrolü atlatır; son güvence yine de
+///     veritabanındaki tekil indekstedir.
 ///   </item>
 ///   <item>
-///     <b>Oturum sonsuza kadar geçerliydi:</b> refresh token yoktu, erişim
-///     jetonu ömrü uzundu. Artık kısa ömürlü erişim jetonu + rotasyonlu
-///     yenileme jetonu kullanılıyor.
+///     <b>Oturum süresizce açık kalmaz.</b> Kısa ömürlü erişim jetonu ve
+///     rotasyonlu yenileme jetonu kullanılır.
 ///   </item>
 /// </list>
 /// </remarks>

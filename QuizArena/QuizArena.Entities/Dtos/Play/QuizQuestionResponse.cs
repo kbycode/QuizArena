@@ -13,9 +13,9 @@ namespace QuizArena.Entities.Dtos.Play;
 /// sızamaz. Doğru cevap, ancak oyuncu cevabını gönderdikten sonra
 /// <see cref="AnswerResultResponse"/> ile açıklanır.
 /// <para>
-/// Karşılaştırma: ilk hâldeki <c>GET /api/answers/getall</c> ucu
-/// <c>Answer</c> varlığını <c>isTrue</c> alanıyla birlikte döndürüyordu;
-/// yarışmayı kazanmak için tek gereken tarayıcı konsolunda o isteği atmaktı.
+/// Ölçüt şu: <c>Answer</c> varlığını doğruluk alanıyla birlikte döndüren
+/// <b>tek bir uç</b>, yarışmayı tarayıcı konsolundan kazanılabilir hâle
+/// getirir. Bu yüzden doğruluk bilgisi oyuncuya giden hiçbir tipte yer almaz.
 /// </para>
 /// </remarks>
 public sealed record QuizQuestionResponse(

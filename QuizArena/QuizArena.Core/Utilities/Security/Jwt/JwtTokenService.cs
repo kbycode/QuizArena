@@ -11,24 +11,27 @@ namespace QuizArena.Core.Utilities.Security.Jwt;
 
 /// <inheritdoc cref="ITokenService"/>
 /// <remarks>
-/// Orijinal <c>JwtHelper</c>'a göre düzeltilen noktalar:
+/// Jeton üretiminde kolayca gözden kaçan üç ayrıntı burada bilinçle ele
+/// alınıyor:
 /// <list type="bullet">
 ///   <item>
-///     <b><c>DateTime.Now</c> → <c>UtcNow</c>:</b> JWT'nin <c>exp</c>/<c>nbf</c>
-///     alanları tanım gereği UTC epoch'tur. Yerel saatle üretilen jeton, UTC+3
-///     bir sunucuda "3 saat sonra geçerli olacak" (<c>nbf</c> gelecekte) diye
-///     reddedilir; UTC-5 bir sunucuda da beklenenden 5 saat fazla yaşar.
+///     <b>Zaman <c>UtcNow</c>, <c>Now</c> değil.</b> JWT'nin <c>exp</c> ve
+///     <c>nbf</c> alanları tanım gereği UTC epoch'tur. Yerel saatle üretilen
+///     bir jeton, UTC+3 bir sunucuda "3 saat sonra geçerli olacak"
+///     (<c>nbf</c> gelecekte) diye reddedilir; UTC-5 bir sunucuda da
+///     beklenenden 5 saat fazla yaşar.
 ///   </item>
 ///   <item>
-///     <b>Ömür hesabı artık kurucuda (constructor) değil:</b> orijinalde
-///     <c>_accessTokenExpiration</c> nesne kurulurken bir kez hesaplanıyordu.
-///     Servis singleton olarak kaydedilse (veya uzun ömürlü kalsa) üretilen tüm
-///     jetonlar aynı, giderek geçmişe kayan bitiş tarihini taşırdı.
+///     <b>Ömür her çağrıda hesaplanır, kurucuda değil.</b> Bitiş tarihi nesne
+///     kurulurken bir kez hesaplansaydı, servis uzun ömürlü kaydedildiğinde
+///     üretilen tüm jetonlar aynı ve giderek geçmişe kayan bir bitiş tarihi
+///     taşırdı.
 ///   </item>
 ///   <item>
-///     <b><c>IOptions</c> ile ayar:</b> orijinal doğrudan <c>IConfiguration</c>
-///     okuyup <c>null</c> kontrolü yapmıyordu; ayar eksikse
-///     <c>NullReferenceException</c> geliyordu.
+///     <b>Ayarlar <c>IOptions</c> ile gelir.</b> <c>IConfiguration</c>'ı
+///     doğrudan okumak, ayar eksik olduğunda hatayı çalışma anına ve
+///     <c>NullReferenceException</c>'a bırakır; <c>IOptions</c> doğrulaması
+///     açılışta yapar.
 ///   </item>
 /// </list>
 /// </remarks>

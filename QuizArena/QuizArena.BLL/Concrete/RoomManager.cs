@@ -25,11 +25,10 @@ namespace QuizArena.BLL.Concrete;
 /// Oda yaşam döngüsü ve yarışma başlatma.
 /// </summary>
 /// <remarks>
-/// Bu servis ve <see cref="GameManager"/>, projenin ilk hâlinde <b>hiç
-/// bulunmayan</b> iş mantığını içerir. Önceki kodda oda ve yarışma tabloları
-/// yalnızca jenerik CRUD uçlarıyla yönetiliyordu; "odaya kim katılabilir",
-/// "yarışma nasıl başlar", "sorular kime hangi sırayla gider" gibi soruların
-/// hiçbir cevabı yoktu.
+/// Oda ve yarışma jenerik CRUD uçlarıyla yönetilemez: "odaya kim
+/// katılabilir", "yarışmayı kim başlatabilir", "sorular kime hangi sırayla
+/// gider" sorularının yanıtı bir tabloda değil, iş kuralında saklıdır.
+/// Bu servis <see cref="GameManager"/> ile birlikte o kuralları taşır.
 /// </remarks>
 public sealed class RoomManager : IRoomService
 {

@@ -4,11 +4,14 @@ namespace QuizArena.Api.Configuration;
 /// CORS ayarları.
 /// </summary>
 /// <remarks>
-/// Projenin ilk hâlinde izin verilen kaynak <c>Program.cs</c> içine sabit
-/// yazılmıştı (<c>WithOrigins("https://localhost:44300")</c>). Bunun anlamı:
-/// uygulama başka bir ortama taşındığında <b>yeniden derlenmesi</b>
-/// gerekiyordu. Ayrıca ilk kodda politika iki kez, biri isimli biri isimsiz
-/// olacak şekilde tanımlanmıştı; isimsiz olan diğerini gölgeliyordu.
+/// İzin verilen kaynaklar yapılandırmadan okunur, koda gömülmez: sabit
+/// yazılmış bir <c>WithOrigins(...)</c>, uygulamayı başka bir ortama taşımak
+/// için <b>yeniden derleme</b> gerektirirdi.
+/// <para>
+/// Politika tek ve <b>isimli</b> tanımlanır. İsimli ve isimsiz politika bir
+/// arada tanımlanırsa isimsiz olan diğerini sessizce gölgeler; sonuç, açık
+/// görünen ama uygulanmayan bir CORS kuralıdır.
+/// </para>
 /// </remarks>
 public sealed class CorsOptions
 {

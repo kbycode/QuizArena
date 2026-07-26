@@ -7,9 +7,9 @@ namespace QuizArena.Entities.Dtos.Categories;
 /// </summary>
 /// <param name="QuestionCount">
 /// Yarışmaya uygun (aktif) soru sayısı. Arayüz "bu kategoride 10 soruluk
-/// yarışma kurulabilir mi?" kararını buradan verir; ilk hâlde bu değer
-/// <c>Category.CountQuestion</c> adlı elle güncellenen bir kolonda tutuluyordu
-/// ve gerçek soru sayısıyla zamanla ayrışıyordu. Artık sorgudan türetiliyor.
+/// yarışma kurulabilir mi?" kararını buradan verir. Değer <b>sorgudan
+/// türetilir</b>, tabloda tutulmaz: elle güncellenen bir sayaç kolonu er ya
+/// da geç gerçek soru sayısıyla ayrışır ve arayüz olmayan soruya güvenir.
 /// </param>
 public sealed record CategoryResponse(
     Guid Id,

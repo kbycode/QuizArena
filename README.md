@@ -20,19 +20,31 @@ Real-time rooms · server-authoritative scoring · cheat-resistant by design
 
 ---
 
-QuizArena is a trivia game backend where players compete solo or in rooms of up
-to eight. Questions are timed, scoring rewards both speed and difficulty, and
-every rule that matters is enforced **on the server** — never trusted to the
-client.
+<div align="center">
+  <img src="docs/screenshots/game.png" alt="In-game: timed question, difficulty chip, live score and four options" width="900">
+</div>
 
-It ships with a **dependency-free playable web client** in `wwwroot`: run
-`dotnet run` and you are playing in the browser within seconds. No npm, no build
-step, no CDN.
+**A trivia game you can run with one command.** Clone it, `dotnet run`, and you
+are playing in the browser — no npm, no build step, no CDN. The playable client
+ships inside `wwwroot` as plain HTML, CSS and JavaScript.
 
-> This project began as an unfinished CRUD skeleton. It was rebuilt into a
-> complete, tested and security-hardened application while preserving the
-> original layered (N-tier) architecture. The [security section](#security)
-> documents every vulnerability that was closed along the way.
+What makes it worth reading:
+
+- **The correct answer never reaches the browser.** Not in the question payload,
+  not in a hidden field, not in a second endpoint. It arrives only after you
+  have answered.
+- **The server owns the clock.** Elapsed time is measured where the question was
+  issued, so a paused tab or an edited system clock earns nothing.
+- **Scoring rewards speed and difficulty**, and the whole formula is a pure
+  function with its own test suite — every boundary covered.
+
+<div align="center">
+  <img src="docs/screenshots/home.png" alt="Home: category picker, game settings, open rooms, personal stats and leaderboard" width="900">
+</div>
+
+> Screenshots come from the bundled demo seed, so the numbers are sample data.
+> Every hardening decision below is documented with the attack it closes, not
+> just the setting it changes — see the [security section](#security).
 
 ---
 

@@ -21,8 +21,9 @@ using Serilog;
 //  metoduna taşındı (Extensions klasörü). Program.cs yalnızca "hangi parçalar,
 //  hangi sırayla" sorusunu cevaplıyor.
 //
-//  Orijinal Program.cs'te JWT/CORS/Autofac kurulumları iç içeydi ve CORS
-//  politikası iki kez tanımlanmıştı (isimsiz olan isimli olanı gölgeliyordu).
+//  Kurulumları iç içe yazmak iki maliyet doğurur: dosya okunamaz hâle gelir
+//  ve aynı politikanın iki kez tanımlanması gibi hatalar gözden kaçar (CORS'ta
+//  isimsiz bir politika, isimli olanı sessizce gölgeler).
 // ---------------------------------------------------------------------------
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);

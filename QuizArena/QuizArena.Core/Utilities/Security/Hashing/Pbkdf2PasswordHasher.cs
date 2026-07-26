@@ -8,19 +8,19 @@ namespace QuizArena.Core.Utilities.Security.Hashing;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Neden projenin ilk hâlindeki HMACSHA512 yaklaşımı değiştirildi?</b>
-/// Orijinal kod <c>new HMACSHA512()</c> ile rastgele bir anahtar üretip onu
-/// "tuz" olarak kullanıyor, parolayı tek turda özetliyordu. Tuz doğru fikirdi
-/// ama tek turluk bir HMAC <b>çok hızlıdır</b>: modern bir GPU saniyede
-/// milyarlarca deneme yapar. Parola özetleme fonksiyonunun bilinçli olarak
-/// <b>yavaş</b> olması gerekir. PBKDF2 iterasyon sayısıyla bu maliyeti ayarlar.
+/// <b>Neden PBKDF2, tek turluk bir HMAC değil?</b> Rastgele bir anahtarı tuz
+/// olarak kullanıp parolayı tek turda özetlemek doğru fikrin yarısıdır: tuz
+/// gereklidir, ama tek turluk bir HMAC <b>çok hızlıdır</b> — modern bir GPU
+/// saniyede milyarlarca deneme yapar. Parola özetleme fonksiyonunun bilinçli
+/// olarak <b>yavaş</b> olması gerekir; PBKDF2 bu maliyeti iterasyon sayısıyla
+/// ayarlar.
 /// </para>
 /// <para>
-/// <b>Sabit zamanlı karşılaştırma:</b> orijinal doğrulama bayt bayt dönen bir
-/// döngüyle ilk farkta <c>return false</c> yapıyordu. Bu, cevap süresinden
-/// "kaç bayt tuttu" bilgisinin sızmasına (timing attack) ve dahası özet
-/// uzunlukları farklıysa <c>IndexOutOfRangeException</c>'a açıktı.
-/// Burada <see cref="CryptographicOperations.FixedTimeEquals"/> kullanılıyor.
+/// <b>Sabit zamanlı karşılaştırma:</b> bayt bayt dönüp ilk farkta
+/// <c>return false</c> yapan bir döngü, cevap süresinden "kaç bayt tuttu"
+/// bilgisini sızdırır (timing attack) ve özet uzunlukları farklıysa
+/// <c>IndexOutOfRangeException</c> atar. Bunun yerine
+/// <see cref="CryptographicOperations.FixedTimeEquals"/> kullanılıyor.
 /// </para>
 /// <para>
 /// Format: <c>pbkdf2-sha256$iterasyon$base64(tuz)$base64(özet)</c> — OWASP'ın

@@ -15,10 +15,11 @@ namespace QuizArena.Core.Middleware;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Projenin ilk hâlinde hiç hata yönetimi yoktu: bir <c>SqlException</c>
-/// ya da <c>NullReferenceException</c> doğrudan istemciye <b>tam yığın izi
-/// (stack trace) ve bağlantı dizesiyle</b> düşüyordu. Bu, saldırgana sunucu
-/// sürümü, şema ve dosya yolu bilgisi veren ciddi bir bilgi sızıntısıdır.
+/// Merkezî hata yönetimi olmadan bir <c>SqlException</c> ya da
+/// <c>NullReferenceException</c> istemciye <b>tam yığın izi (stack trace) ve
+/// bağlantı dizesiyle</b> düşer. Bu, saldırgana sunucu sürümünü, şemayı ve
+/// dosya yollarını veren ciddi bir bilgi sızıntısıdır; middleware onu
+/// yapısal olarak engeller.
 /// </para>
 /// <para>
 /// Buradaki sözleşme nettir: <b>beklenen</b> hatalar (<see cref="AppException"/>)

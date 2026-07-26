@@ -4,9 +4,9 @@ namespace QuizArena.Core.DataAccess.Paging;
 /// Sayfalama isteği. Sınırlar sınıfın içinde zorlanır.
 /// </summary>
 /// <remarks>
-/// Projenin ilk hâlindeki <c>GetList()</c> tabloyu tümüyle çekiyordu. Tablo
-/// büyüdüğünde bu yalnızca yavaşlık değil, <b>hizmet dışı bırakma (DoS)</b>
-/// riskidir: tek istek yüz binlerce satırı belleğe alır. Ayrıca istemcinin
+/// Sayfalama <b>zorunludur</b>. Tabloyu tümüyle çeken bir uç, tablo
+/// büyüdüğünde yalnızca yavaşlamaz; tek istekle yüz binlerce satırı belleğe
+/// alarak <b>hizmet dışı bırakma (DoS)</b> yüzeyi açar. İstemcinin
 /// <c>pageSize=1000000</c> göndererek aynı etkiyi yaratmasını engellemek için
 /// üst sınır burada, DTO'ya güvenmeden uygulanır.
 /// </remarks>
