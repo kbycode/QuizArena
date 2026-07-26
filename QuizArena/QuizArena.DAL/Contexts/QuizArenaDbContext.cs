@@ -4,6 +4,8 @@ using QuizArena.Core.Entities;
 using QuizArena.Core.Entities.Concrete;
 using QuizArena.Entities.Concrete;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace QuizArena.DAL.Contexts;
 
@@ -67,8 +69,77 @@ public class QuizArenaDbContext : DbContext
         // Yeni bir varlık eklendiğinde burayı düzenlemek gerekmez.
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
+        ApplyUtcDateTimeConverters(modelBuilder);
         ApplySoftDeleteQueryFilters(modelBuilder);
     }
+
+    /// <summary>
+    /// Veritabanından okunan her <see cref="DateTime"/> değerini UTC olarak
+    /// işaretler.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Bu dönüştürücü olmadan sistemde sessiz bir saat kayması oluşur.</b>
+    /// SQL Server'ın <c>datetime2</c> (ve SQLite'ın metin) sütunları saat
+    /// dilimi bilgisi taşımaz; EF Core değeri geri okurken
+    /// <see cref="DateTimeKind.Unspecified"/> atar. <c>System.Text.Json</c> ise
+    /// yalnızca <c>Kind == Utc</c> olan değerlere <c>Z</c> son ekini yazar.
+    /// Sonuç: API <c>"2026-07-26T07:22:00"</c> döner, tarayıcıdaki
+    /// <c>new Date(...)</c> bunu <b>yerel saat</b> kabul eder ve UTC+3'teki
+    /// kullanıcı, saat 10:22'de başlayacak etkinliği "3 saat önce başladı"
+    /// diye görür.
+    /// </para>
+    /// <para>
+    /// Hata özellikle sinsi: geliştirici makinesi UTC+0 ise <b>hiç
+    /// görünmez</b>, testler de geçer — çünkü kayma sıfırdır. Yalnızca farklı
+    /// bir saat diliminde gerçek uygulamayı çalıştırınca ortaya çıkar.
+    /// </para>
+    /// <para>
+    /// Dönüşüm <b>tek yerde</b>, model kurulumunda uygulanıyor. Alternatifi
+    /// her DTO eşlemesinde <c>DateTime.SpecifyKind</c> çağırmaktı; bir tanesi
+    /// unutulduğunda aynı hata geri gelirdi. Yeni bir varlık veya tarih alanı
+    /// eklendiğinde burada bir şey değiştirmek gerekmiyor.
+    /// </para>
+    /// </remarks>
+    private static void ApplyUtcDateTimeConverters(ModelBuilder modelBuilder)
+    {
+        foreach (IMutableEntityType entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (IMutableProperty property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTime))
+                {
+                    property.SetValueConverter(UtcDateTimeConverter);
+                }
+                else if (property.ClrType == typeof(DateTime?))
+                {
+                    property.SetValueConverter(NullableUtcDateTimeConverter);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Yazarken yerel saatleri UTC'ye çevirir, okurken değeri UTC olarak
+    /// işaretler.
+    /// </summary>
+    /// <remarks>
+    /// <c>Unspecified</c> değerler yazarken <b>olduğu gibi</b> bırakılıyor:
+    /// bu projede tüm tarihler <c>IClock.UtcNow</c>'dan geliyor ve alan adları
+    /// <c>...Utc</c> ile bitiyor, yani zaten UTC'ler. <c>ToUniversalTime()</c>
+    /// çağırmak onları makinenin saat dilimi kadar kaydırırdı.
+    /// </remarks>
+    private static readonly ValueConverter<DateTime, DateTime> UtcDateTimeConverter = new(
+        value => value.Kind == DateTimeKind.Local ? value.ToUniversalTime() : value,
+        value => DateTime.SpecifyKind(value, DateTimeKind.Utc));
+
+    private static readonly ValueConverter<DateTime?, DateTime?> NullableUtcDateTimeConverter = new(
+        value => value.HasValue && value.Value.Kind == DateTimeKind.Local
+            ? value.Value.ToUniversalTime()
+            : value,
+        value => value.HasValue
+            ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)
+            : value);
 
     /// <summary>
     /// <see cref="ISoftDeletable"/> uygulayan her varlığa
