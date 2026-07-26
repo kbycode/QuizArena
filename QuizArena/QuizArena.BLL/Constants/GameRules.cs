@@ -64,4 +64,25 @@ public static class GameRules
     public const int LeaderboardMaxTop = 100;
     public const int LeaderboardCacheMinutes = 2;
     public const int CategoryCacheMinutes = 15;
+
+    // --- Yönetim panosu ------------------------------------------------------
+    public const int DefaultDashboardWindowDays = 14;
+    public const int MinDashboardWindowDays = 7;
+    public const int MaxDashboardWindowDays = 90;
+
+    /// <summary>"En zor" / "en kolay" listelerinde gösterilecek soru sayısı.</summary>
+    public const int DashboardQuestionListSize = 10;
+
+    /// <summary>
+    /// Bir sorunun başarı oranının anlamlı sayılması için gereken en az
+    /// sorulma sayısı.
+    /// </summary>
+    /// <remarks>
+    /// Eşik olmasaydı bir kez sorulup bilinememiş her soru "%0 başarı" ile
+    /// "en zor sorular" listesinin tepesine otururdu. Tek gözlemden oran
+    /// çıkarmak istatistiksel olarak anlamsızdır.
+    /// </remarks>
+    public const int DashboardMinTimesAsked = 3;
+
+    public const int DashboardCacheMinutes = 2;
 }

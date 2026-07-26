@@ -10,7 +10,7 @@ Real-time rooms · server-authoritative scoring · cheat-resistant by design
 [![EF Core](https://img.shields.io/badge/EF%20Core-8.0-512BD4)](https://learn.microsoft.com/ef/core/)
 [![SQL Server](https://img.shields.io/badge/SQL%20Server-2022-CC2927?logo=microsoftsqlserver&logoColor=white)](https://www.microsoft.com/sql-server)
 [![SignalR](https://img.shields.io/badge/SignalR-real--time-0078D4)](https://learn.microsoft.com/aspnet/core/signalr/)
-[![Tests](https://img.shields.io/badge/tests-103%20passing-2ea44f)](#testing)
+[![Tests](https://img.shields.io/badge/tests-120%20passing-2ea44f)](#testing)
 [![Build](https://img.shields.io/badge/build-0%20warnings-2ea44f)](#)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
@@ -53,6 +53,7 @@ What makes it worth reading:
 - [Quick start](#quick-start)
 - [Architecture](#architecture)
 - [Game flow](#game-flow)
+- [Admin console](#admin-console)
 - [Security](#security)
 - [Scoring](#scoring)
 - [API reference](#api-reference)
@@ -193,6 +194,45 @@ stateDiagram-v2
 
 ---
 
+## Admin console
+
+Sign in as an administrator and the top bar gains a **Yönetim** entry: five
+tabs, each gated by its own permission. The route guard only answers "may this
+user open the console"; which tabs appear is decided per tab, and every one of
+those permissions is enforced again in the business layer, so hiding a tab is a
+courtesy rather than the boundary.
+
+<div align="center">
+  <img src="docs/screenshots/admin-dashboard.png" alt="Admin dashboard: KPI tiles and a hand-drawn SVG activity chart" width="900">
+</div>
+
+| Tab | Permission | What it does |
+|---|---|---|
+| **Dashboard** | `Admin` | One aggregate endpoint feeds six KPI tiles, a daily-activity chart, per-category accuracy and the ten most-missed questions |
+| **Questions** | `Admin`, `Question.Manage` | CRUD over the question pool, with an answer editor that enforces exactly one correct option |
+| **Categories** | `Admin`, `Category.Manage` | Create and edit categories, toggle visibility |
+| **Events** | `Admin`, `Event.Manage` | Schedule tournaments that start **on their own** |
+| **Users** | `Admin`, `User.Manage` | Server-side paged list with search, enable/disable, lockout release, permission assignment |
+
+**The charts are hand-written SVG.** A charting library would have to come from
+npm or a CDN — either one ends the "clone and `dotnet run`" promise and breaks
+the strict Content-Security-Policy header. A few hundred bytes of generated
+`<rect>` and `<polyline>` cost less and give exact control.
+
+### Scheduled events
+
+An event is not a separate entity — it is a `Room` with `IsOfficialEvent` and
+`ScheduledStartUtc` set, so question selection, per-player competitions, the
+scoreboard and scoring are reused rather than duplicated.
+
+A `BackgroundService` polls every 30 seconds, starts events whose minute has
+arrived, and cancels those nobody signed up for. There is deliberately **no
+endpoint that starts an event early**: the announced time is the whole point.
+Registering also does not count as "being in a room", so a player who signs up
+for Friday's tournament can still play today.
+
+---
+
 ## Security
 
 Security here is not a layer bolted on afterwards — it is a set of constraints
@@ -324,7 +364,7 @@ validation details.
 dotnet test
 ```
 
-**103 tests, all green.**
+**120 tests, all green.**
 
 | Suite | What it proves |
 |---|---|
@@ -446,7 +486,7 @@ QuizArena/
     ├── QuizArena.DAL/              · DbContext, configurations, repositories, migrations, seed
     ├── QuizArena.BLL/              · Services, game engine, scoring, validation
     ├── QuizArena.Api/              · Controllers, middleware, SignalR, demo client
-    └── QuizArena.Tests/            · 103 tests (xUnit · FluentAssertions · SQLite)
+    └── QuizArena.Tests/            · 120 tests (xUnit · FluentAssertions · SQLite)
 ```
 
 Build settings enforce a security policy of their own: `NuGetAuditMode=all` with

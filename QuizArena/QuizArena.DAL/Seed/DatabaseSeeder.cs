@@ -195,8 +195,13 @@ public sealed class DatabaseSeeder
     {
         string normalizedEmail = _options.AdminEmail.Trim().ToUpperInvariant();
 
-        if (await _context.Users.AnyAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken))
+        User? existing = await _context.Users
+            .FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
+
+        if (existing is not null)
         {
+            // Hesap zaten var: parolaya dokunulmaz ama yetkiler tamamlanır.
+            await GrantMissingClaimsAsync(existing.Id, cancellationToken);
             return;
         }
 
@@ -241,19 +246,58 @@ public sealed class DatabaseSeeder
         _context.Users.Add(admin);
         _context.UserStatistics.Add(new UserStatistic { UserId = admin.Id });
 
-        // Yönetici tüm yetkileri alır.
-        List<OperationClaim> claims = await _context.OperationClaims.ToListAsync(cancellationToken);
-        foreach (OperationClaim claim in claims)
+        await _context.SaveChangesAsync(cancellationToken);
+        await GrantMissingClaimsAsync(admin.Id, cancellationToken);
+
+        _logger.LogInformation("Yönetici hesabı oluşturuldu: {Email}", admin.Email);
+    }
+
+    /// <summary>
+    /// Yöneticiye, henüz sahip olmadığı tüm yetkileri verir.
+    /// </summary>
+    /// <remarks>
+    /// Her açılışta çalışır ve bu bilinçli. Yetkiler yalnızca hesap
+    /// oluşturulurken atansaydı, sisteme sonradan eklenen bir yetki
+    /// (<c>Event.Manage</c> gibi) mevcut yöneticiye <b>hiç ulaşmazdı</b>:
+    /// veritabanı yeni yetkiyi tanır, yönetici onu kullanamaz ve hata
+    /// "yetkim neden yok?" diye ortaya çıkana kadar sessiz kalırdı.
+    /// <para>
+    /// Yalnızca <b>eksik</b> olanlar eklenir; elle kaldırılmış bir yetkiyi
+    /// geri getirmesi kabul edilebilir, çünkü yönetici tanımı gereği
+    /// hepsine sahiptir.
+    /// </para>
+    /// </remarks>
+    private async Task GrantMissingClaimsAsync(Guid adminId, CancellationToken cancellationToken)
+    {
+        List<Guid> ownedClaimIds = await _context.UserOperationClaims
+            .Where(uoc => uoc.UserId == adminId)
+            .Select(uoc => uoc.OperationClaimId)
+            .ToListAsync(cancellationToken);
+
+        List<OperationClaim> missing = await _context.OperationClaims
+            .Where(claim => !ownedClaimIds.Contains(claim.Id))
+            .ToListAsync(cancellationToken);
+
+        if (missing.Count == 0)
+        {
+            return;
+        }
+
+        foreach (OperationClaim claim in missing)
         {
             _context.UserOperationClaims.Add(new UserOperationClaim
             {
-                UserId = admin.Id,
+                UserId = adminId,
                 OperationClaimId = claim.Id
             });
         }
 
         await _context.SaveChangesAsync(cancellationToken);
-        _logger.LogInformation("Yönetici hesabı oluşturuldu: {Email}", admin.Email);
+
+        _logger.LogInformation(
+            "Yöneticiye {Count} eksik yetki atandı: {Claims}",
+            missing.Count,
+            string.Join(", ", missing.Select(c => c.Name)));
     }
 
     // ---------------------------------------------------------------------

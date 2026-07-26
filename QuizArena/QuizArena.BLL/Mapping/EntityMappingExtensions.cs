@@ -170,6 +170,51 @@ public static class EntityMappingExtensions
         room.HostUser?.Nickname ?? string.Empty,
         room.CreatedAtUtc);
 
+    /// <summary>
+    /// Odayı etkinlik yanıtına çevirir.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Katılım kodu bilinçli olarak yok.</b> Etkinlik zaten herkese açık
+    /// listeleniyor; kodu göstermek, kayıt kontrolünü (kontenjan, saat)
+    /// atlatarak doğrudan odaya girmenin yolunu açardı.
+    /// </para>
+    /// <para>
+    /// <c>CanRegister</c> kararı burada, yani <b>sunucuda</b> veriliyor.
+    /// Aynı kuralı arayüzde tekrar yazmak, iki tarafın er ya da geç ayrışması
+    /// demek: sunucu "kontenjan dolu" derken düğme hâlâ etkin görünürdü.
+    /// </para>
+    /// </remarks>
+    public static EventResponse ToEventResponse(this Room room, Guid? currentUserId, DateTime nowUtc)
+    {
+        bool isRegistered = currentUserId is not null
+                            && room.Participants.Any(p => p.UserId == currentUserId);
+
+        bool canRegister = !isRegistered
+                           && room.Status == RoomStatus.Waiting
+                           && room.ScheduledStartUtc > nowUtc
+                           && room.Participants.Count < room.MaxPlayers;
+
+        return new EventResponse(
+            room.Id,
+            room.Name,
+            room.Description,
+            room.CategoryId,
+            room.Category?.Name ?? string.Empty,
+            room.Category?.Icon,
+            room.Status,
+            room.ScheduledStartUtc ?? room.CreatedAtUtc,
+            room.QuestionCount,
+            room.SecondsPerQuestion,
+            room.MaxPlayers,
+            room.Participants.Count,
+            room.HostUser?.Nickname ?? string.Empty,
+            room.CreatedAtUtc,
+            room.StartedAtUtc,
+            isRegistered,
+            canRegister);
+    }
+
     // ---------------------------------------------------------------------
     //  Oyun
     // ---------------------------------------------------------------------

@@ -86,6 +86,22 @@ public static class Messages
     public const string AlreadyInAnotherRoom =
         "Devam eden bir yarışmanız var. Yeni oda kurabilmek için önce onu tamamlayın veya iptal edin.";
 
+    // --- Zamanlanmış etkinlik ------------------------------------------------
+    public const string EventNotFound = "Etkinlik bulunamadı.";
+    public const string EventCreated = "Etkinlik oluşturuldu.";
+    public const string EventUpdated = "Etkinlik güncellendi.";
+    public const string EventCancelled = "Etkinlik iptal edildi.";
+    public const string EventRegistered = "Etkinliğe kaydoldunuz.";
+    public const string EventWithdrawn = "Etkinlik kaydınız iptal edildi.";
+    public const string EventFull = "Etkinlik kontenjanı dolu.";
+    public const string EventAlreadyRegistered = "Bu etkinliğe zaten kayıtlısınız.";
+    public const string EventNotRegistered = "Bu etkinliğe kayıtlı değilsiniz.";
+    public const string EventAlreadyStarted = "Etkinlik başladığı için bu işlem yapılamaz.";
+    public const string EventStartMustBeFuture = "Etkinlik başlangıcı gelecekte bir zaman olmalıdır.";
+    public const string NotAScheduledEvent = "Bu oda zamanlanmış bir etkinlik değil.";
+    public const string EventCancelledNoParticipants =
+        "Etkinlik, yeterli katılımcı olmadığı için iptal edildi.";
+
     // --- Yarışma / oyun ------------------------------------------------------
     public const string NotEnoughQuestions =
         "Bu kategoride yeterli sayıda soru yok. Daha az soruyla deneyin veya başka bir kategori seçin.";

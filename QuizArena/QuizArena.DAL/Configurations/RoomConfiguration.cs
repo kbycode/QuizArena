@@ -14,6 +14,8 @@ public sealed class RoomConfiguration : IEntityTypeConfiguration<Room>
         builder.Property(r => r.Name).IsRequired().HasMaxLength(64);
         builder.Property(r => r.JoinCode).IsRequired().HasMaxLength(8);
 
+        builder.Property(r => r.Description).HasMaxLength(512);
+
         builder.Property(r => r.Mode).HasConversion<int>();
         builder.Property(r => r.Status).HasConversion<int>();
 
@@ -26,6 +28,12 @@ public sealed class RoomConfiguration : IEntityTypeConfiguration<Room>
         // Açık oda listesi sorgusu: Mode + Status + tarihe göre sırala.
         builder.HasIndex(r => new { r.Status, r.Mode, r.CreatedAtUtc })
             .HasDatabaseName("IX_Rooms_Status_Mode_Created");
+
+        // Arka plan hizmeti her 30 saniyede bir "zamanı gelmiş etkinlik var mı?"
+        // diye soruyor. Bu indeks olmasaydı o sorgu, sistem büyüdükçe tüm oda
+        // tablosunu taramaya başlardı — hem de sürekli.
+        builder.HasIndex(r => new { r.IsOfficialEvent, r.Status, r.ScheduledStartUtc })
+            .HasDatabaseName("IX_Rooms_Event_Status_ScheduledStart");
 
         builder.HasOne(r => r.HostUser)
             .WithMany()

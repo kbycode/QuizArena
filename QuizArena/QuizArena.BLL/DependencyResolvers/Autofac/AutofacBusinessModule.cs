@@ -43,6 +43,8 @@ public sealed class AutofacBusinessModule : Module
         RegisterService<AchievementManager, IAchievementService>(builder);
         RegisterService<LeaderboardManager, ILeaderboardService>(builder);
         RegisterService<OperationClaimManager, IOperationClaimService>(builder);
+        RegisterService<DashboardManager, IDashboardService>(builder);
+        RegisterService<EventManager, IEventService>(builder);
     }
 
     /// <summary>

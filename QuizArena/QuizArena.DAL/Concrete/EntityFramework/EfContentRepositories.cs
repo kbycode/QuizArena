@@ -151,8 +151,23 @@ public sealed class EfAnswerRepository
             orderBy: q => q.OrderBy(a => a.DisplayOrder),
             cancellationToken: cancellationToken);
 
+    /// <remarks>
+    /// <b>Yumuşak silme, kalıcı değil.</b> Şık kimlikleri geçmiş yarışma
+    /// cevaplarında (<c>CompetitionAnswers.SelectedAnswerId</c>) yabancı
+    /// anahtar olarak duruyor. Satırlar kalıcı silinirse veritabanı bu kısıtı
+    /// reddeder ve <b>bir kez oynanmış hiçbir soru düzenlenemez</b> hâle gelir.
+    /// <para>
+    /// İşaretlenen satırlar genel sorgu filtresi sayesinde yeni sorgularda
+    /// görünmez; geçmiş cevaplar ise hangi şıkkın seçildiğini göstermeye
+    /// devam eder.
+    /// </para>
+    /// </remarks>
     public Task DeleteByQuestionAsync(Guid questionId, CancellationToken cancellationToken = default)
         => Context.Answers
             .Where(a => a.QuestionId == questionId)
-            .ExecuteDeleteAsync(cancellationToken);
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(a => a.IsDeleted, true)
+                    .SetProperty(a => a.DeletedAtUtc, DateTime.UtcNow),
+                cancellationToken);
 }

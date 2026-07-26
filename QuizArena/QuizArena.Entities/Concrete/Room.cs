@@ -43,6 +43,41 @@ public class Room : EntityBase
     public DateTime? StartedAtUtc { get; set; }
     public DateTime? FinishedAtUtc { get; set; }
 
+    // --- Zamanlanmış etkinlik (turnuva) alanları ----------------------------
+
+    /// <summary>
+    /// Odanın <b>resmî bir etkinlik</b> olup olmadığı.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Neden ayrı bir <c>Event</c> varlığı değil?</b> Bir etkinlik,
+    /// zamanlanmış bir odadan başka bir şey değildir: aynı kategori, aynı soru
+    /// sayısı, aynı katılımcı listesi, aynı skor tablosu, aynı SignalR grubu.
+    /// Ayrı varlık, oyun motorunun tamamının ikinci bir kopyasını gerektirirdi
+    /// (soru seçimi, yarışma oturumu, puanlama) — çoğaltılan her satır
+    /// ayrışma riski demek.
+    /// </para>
+    /// <para>
+    /// Bu bayrak yalnızca <b>görünürlük ve yetki</b> ayrımı yapar: etkinlikler
+    /// katılım kodu olmadan listelenir ve yalnızca yetkili kullanıcılar
+    /// oluşturabilir.
+    /// </para>
+    /// </remarks>
+    public bool IsOfficialEvent { get; set; }
+
+    /// <summary>
+    /// Etkinliğin otomatik başlayacağı an (UTC). Sıradan odalarda <c>null</c>.
+    /// </summary>
+    /// <remarks>
+    /// Zamanı gelen etkinlikleri arka planda çalışan bir hizmet başlatır
+    /// (<c>ScheduledEventStarter</c>). Kurucunun o anda çevrimiçi olması
+    /// gerekmez — etkinliğin bütün anlamı budur.
+    /// </remarks>
+    public DateTime? ScheduledStartUtc { get; set; }
+
+    /// <summary>Etkinlik açıklaması (oyunculara gösterilir).</summary>
+    public string? Description { get; set; }
+
     public Category Category { get; set; } = null!;
     public User HostUser { get; set; } = null!;
 
@@ -50,4 +85,8 @@ public class Room : EntityBase
     public ICollection<Competition> Competitions { get; set; } = [];
 
     public bool IsMultiplayer => Mode != RoomMode.Solo;
+
+    /// <summary>Başlama saati henüz gelmemiş bir etkinlik mi?</summary>
+    public bool IsPendingEvent(DateTime nowUtc)
+        => IsOfficialEvent && Status == RoomStatus.Waiting && ScheduledStartUtc > nowUtc;
 }

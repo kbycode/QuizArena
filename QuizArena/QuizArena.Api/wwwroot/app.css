@@ -112,13 +112,23 @@ h3 { margin: 0 0 14px; font-size: 15px; text-transform: uppercase; letter-spacin
 
 .form { display: flex; flex-direction: column; gap: 14px; }
 label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); }
-input, select {
+/* Onay kutusu ve radyo hariç: onlara %100 genişlik vermek, içinde
+   bulundukları satırı tümüyle yutar. */
+input:not([type="checkbox"]):not([type="radio"]), select, textarea {
   width: 100%; margin-top: 6px; padding: 11px 13px;
   background: var(--bg); color: var(--text);
   border: 1px solid var(--border); border-radius: var(--radius-sm);
   font: inherit; font-size: 15px; font-weight: 400;
 }
-input:focus, select:focus { outline: 2px solid var(--primary); outline-offset: 1px; border-color: var(--primary); }
+textarea { resize: vertical; min-height: 44px; }
+
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid var(--primary); outline-offset: 1px; border-color: var(--primary);
+}
+
+input[type="checkbox"], input[type="radio"] {
+  width: 16px; height: 16px; margin: 0; flex-shrink: 0; accent-color: var(--primary);
+}
 
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
@@ -278,3 +288,490 @@ input:focus, select:focus { outline: 2px solid var(--primary); outline-offset: 1
 
 /* Klavye ile gezinenler için görünür odak halkası. */
 :focus-visible { outline: 2px solid var(--primary-hover); outline-offset: 2px; }
+
+/* ==========================================================================
+   Yönetim konsolu
+
+   Grafikler dâhil her şey burada. SVG'ler sabit renk yerine tema
+   değişkenleriyle boyanıyor; böylece palet tek kaynakta kalıyor.
+   ========================================================================== */
+
+/* ------------------------------- Gezinme --------------------------------- */
+
+.mainnav {
+  display: flex;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.navlink {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.navlink:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.navlink.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ------------------------------ Araç çubuğu ------------------------------ */
+
+.admin-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 14px 0 16px;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tabs-wide {
+  margin-bottom: 4px;
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.segment {
+  padding: 7px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.segment:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.segment.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ------------------------------ Sayaç kartları --------------------------- */
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+}
+
+.kpi-head {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.kpi-value {
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.kpi-foot {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+/* --------------------------------- Düzen --------------------------------- */
+
+.admin-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.dashboard-foot {
+  margin: 14px 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+/* -------------------------------- Grafikler ------------------------------ */
+
+.chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.chart-bar {
+  fill: rgba(99, 102, 241, 0.55);
+}
+
+.chart-line {
+  fill: none;
+  stroke: var(--warning);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.chart-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.chart-track {
+  fill: rgba(255, 255, 255, 0.06);
+}
+
+.chart-label {
+  fill: var(--text-muted);
+  font-size: 11px;
+  font-family: var(--font);
+}
+
+.chart-label-strong {
+  fill: var(--text);
+}
+
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 6px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.swatch-bar {
+  background: rgba(99, 102, 241, 0.75);
+}
+
+.swatch-line {
+  background: var(--warning);
+}
+
+/* --------------------------------- Tablo --------------------------------- */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.table td {
+  padding: 10px;
+  border-bottom: 1px solid rgba(38, 50, 88, 0.5);
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: 0;
+}
+
+.table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.icon-cell {
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.chip-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.row-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.btn-ghost.danger {
+  color: var(--danger);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 12px;
+}
+
+/* --------------------------------- Rozetler ------------------------------ */
+
+.chip-ok { background: rgba(16, 185, 129, 0.18); color: #6ee7b7; }
+.chip-warn { background: rgba(245, 158, 11, 0.18); color: #fcd34d; }
+.chip-danger { background: rgba(239, 68, 68, 0.18); color: #fca5a5; }
+.chip-info { background: rgba(99, 102, 241, 0.18); color: #a5b4fc; }
+.chip-muted { background: rgba(150, 160, 194, 0.14); color: var(--text-muted); }
+
+.chip-easy { background: rgba(16, 185, 129, 0.18); color: #6ee7b7; }
+.chip-medium { background: rgba(245, 158, 11, 0.18); color: #fcd34d; }
+.chip-hard { background: rgba(239, 68, 68, 0.18); color: #fca5a5; }
+
+.chip-waiting { background: rgba(99, 102, 241, 0.18); color: #a5b4fc; }
+.chip-inprogress { background: rgba(16, 185, 129, 0.18); color: #6ee7b7; }
+.chip-finished { background: rgba(150, 160, 194, 0.14); color: var(--text-muted); }
+.chip-cancelled { background: rgba(239, 68, 68, 0.18); color: #fca5a5; }
+
+/* ----------------------------- Soru istatistiği -------------------------- */
+
+.stat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.stat-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(38, 50, 88, 0.5);
+}
+
+.stat-list li:last-child {
+  border-bottom: 0;
+}
+
+.stat-list-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.stat-list-title {
+  font-size: 0.87rem;
+}
+
+.rate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.rate-track {
+  width: 64px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.rate-fill {
+  height: 100%;
+  background: var(--primary);
+}
+
+.rate-value {
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  min-width: 36px;
+  text-align: right;
+  color: var(--text-muted);
+}
+
+/* -------------------------------- Diyalog -------------------------------- */
+
+.dialog {
+  width: min(560px, calc(100vw - 32px));
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.dialog::backdrop {
+  background: rgba(4, 8, 22, 0.66);
+}
+
+.dialog h3 {
+  margin: 0 0 14px;
+}
+
+.dialog-text {
+  margin: 0 0 12px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.dialog-error {
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(239, 68, 68, 0.14);
+  color: #fca5a5;
+  font-size: 0.83rem;
+}
+
+.answers {
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.answer-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 7px;
+}
+
+.answer-row input[type="text"] {
+  flex: 1;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.claim-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.claim-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.claim-row:hover {
+  background: var(--bg-hover);
+}
+
+.claim-row span {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.35;
+}
+
+.claim-row small {
+  font-size: 0.76rem;
+}
+
+/* --------------------------- Yaklaşan etkinlikler ------------------------ */
+
+.event-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.event {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  flex-wrap: wrap;
+}
+
+.event + .event {
+  border-top: 1px solid rgba(38, 50, 88, 0.6);
+}
+
+/* 11rem taban genişlik: bunun altına inmek yerine düğmeler alt satıra kayar.
+   Yalnızca `flex: 1` verilseydi metin dar kenar çubuğunda kelime kelime
+   alt alta düşerdi. */
+.event-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 11rem;
+}
+
+.event-info small {
+  font-size: 0.76rem;
+}
+
+.event-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .mainnav {
+    display: none;
+  }
+
+  .row-actions {
+    justify-content: flex-start;
+  }
+}

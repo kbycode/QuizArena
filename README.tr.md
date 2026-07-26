@@ -10,7 +10,7 @@ Gerçek zamanlı odalar · sunucu otoriteli puanlama · tasarımdan gelen hile d
 [![EF Core](https://img.shields.io/badge/EF%20Core-8.0-512BD4)](https://learn.microsoft.com/ef/core/)
 [![SQL Server](https://img.shields.io/badge/SQL%20Server-2022-CC2927?logo=microsoftsqlserver&logoColor=white)](https://www.microsoft.com/sql-server)
 [![SignalR](https://img.shields.io/badge/SignalR-ger%C3%A7ek%20zamanl%C4%B1-0078D4)](https://learn.microsoft.com/aspnet/core/signalr/)
-[![Testler](https://img.shields.io/badge/test-103%20ge%C3%A7iyor-2ea44f)](#testler)
+[![Testler](https://img.shields.io/badge/test-120%20ge%C3%A7iyor-2ea44f)](#testler)
 [![Derleme](https://img.shields.io/badge/derleme-0%20uyar%C4%B1-2ea44f)](#)
 [![Lisans](https://img.shields.io/badge/lisans-MIT-blue)](LICENSE)
 
@@ -190,6 +190,45 @@ stateDiagram-v2
 
 ---
 
+## Yönetim paneli
+
+Yönetici olarak giriş yapıldığında üst çubukta **Yönetim** girişi belirir: beş
+sekme, her biri kendi yetkisinin arkasında. Rota koruyucusu yalnızca "bu
+kullanıcı paneli açabilir mi" sorusunu yanıtlar; hangi sekmenin görüneceğine
+sekme bazında karar verilir. Bu yetkilerin hepsi iş katmanında bir kez daha
+uygulanır, yani sekmeyi gizlemek nezakettir, sınır değildir.
+
+<div align="center">
+  <img src="docs/screenshots/admin-dashboard.png" alt="Yönetim panosu: sayaç kartları ve elle çizilmiş SVG etkinlik grafiği" width="900">
+</div>
+
+| Sekme | Yetki | Ne yapar |
+|---|---|---|
+| **Pano** | `Admin` | Tek toplama ucu; altı sayaç, günlük etkinlik grafiği, kategori doğruluk oranı, en çok yanılınan on soru |
+| **Sorular** | `Admin`, `Question.Manage` | Soru havuzu CRUD'u; şık düzenleyici tam olarak bir doğru şık şartını uygular |
+| **Kategoriler** | `Admin`, `Category.Manage` | Kategori ekleme, düzenleme, görünürlük |
+| **Etkinlikler** | `Admin`, `Event.Manage` | **Kendiliğinden** başlayan turnuvalar planlama |
+| **Kullanıcılar** | `Admin`, `User.Manage` | Sunucu taraflı sayfalı liste, arama, hesap açma/kapatma, kilit açma, yetki atama |
+
+**Grafikler elle yazılmış SVG.** Bir grafik kütüphanesi ya npm'den ya CDN'den
+gelmek zorunda; ikisi de "klonla ve `dotnet run`" vaadini bitirir ve sıkı
+Content-Security-Policy başlığını ihlal eder. Birkaç yüz baytlık `<rect>` ve
+`<polyline>` hem daha ucuz hem de tam denetim veriyor.
+
+### Zamanlanmış etkinlikler
+
+Etkinlik ayrı bir varlık değil — `IsOfficialEvent` ve `ScheduledStartUtc`
+alanları dolu bir `Room`. Böylece soru seçimi, oyuncu başına yarışma, skor
+tablosu ve puanlama çoğaltılmadan yeniden kullanılıyor.
+
+Bir `BackgroundService` 30 saniyede bir yokluyor, saati gelen etkinlikleri
+başlatıyor, kimsenin kaydolmadıklarını iptal ediyor. Etkinliği **erken
+başlatan bir uç bilinçli olarak yok**: ilan edilen saatin tüm anlamı bu.
+Kaydolmak "odada olmak" da sayılmıyor; cuma turnuvasına yazılan oyuncu bugün de
+oynayabilir.
+
+---
+
 ## Güvenlik
 
 Bu projede güvenlik sonradan eklenmiş bir katman değil, veri modeliyle birlikte
@@ -298,7 +337,7 @@ Tam liste ve şemalar için Swagger arayüzüne bakın.
 dotnet test
 ```
 
-**103 test.** Kapsam:
+**120 test.** Kapsam:
 
 | Alan | Ne doğrulanıyor? |
 |---|---|
@@ -418,7 +457,7 @@ QuizArena/
     ├── QuizArena.DAL/         · DbContext, konfigürasyonlar, repolar, migration, seed
     ├── QuizArena.BLL/         · Servisler, oyun motoru, puanlama, doğrulama
     ├── QuizArena.Api/         · Controller, middleware, SignalR, demo arayüz
-    └── QuizArena.Tests/       · 103 test (xUnit + FluentAssertions + SQLite)
+    └── QuizArena.Tests/       · 120 test (xUnit + FluentAssertions + SQLite)
 ```
 
 ---

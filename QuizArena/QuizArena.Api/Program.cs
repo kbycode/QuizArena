@@ -1,6 +1,7 @@
 using System.Globalization;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using QuizArena.Api.BackgroundServices;
 using QuizArena.Api.Configuration;
 using QuizArena.Api.Extensions;
 using QuizArena.Api.Hubs;
@@ -68,6 +69,11 @@ builder.Services.AddSignalR();
 // bildirim altyapısı olmadan da çalışabilmesi için). Burada gerçek SignalR
 // uygulamasını ekliyoruz; son kayıt kazandığı için bu geçerli olur.
 builder.Services.AddSingleton<IGameNotifier, SignalRGameNotifier>();
+
+// --- Arka plan hizmetleri ---------------------------------------------------
+// Zamanı gelen etkinlikleri başlatır. Kendi DI kapsamını açar; bkz. sınıf
+// belgelendirmesi.
+builder.Services.AddHostedService<ScheduledEventStarter>();
 
 // --- Web katmanı ------------------------------------------------------------
 builder.Services

@@ -29,8 +29,43 @@ public interface IRoomRepository : IEntityRepository<Room>
 
     Task<bool> JoinCodeExistsAsync(string joinCode, CancellationToken cancellationToken = default);
 
-    /// <summary>Kullanıcının şu anda içinde bulunduğu, bitmemiş oda.</summary>
-    Task<Room?> GetActiveRoomForUserAsync(Guid userId, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Kullanıcının şu anda içinde bulunduğu, bitmemiş oda.
+    /// </summary>
+    /// <remarks>
+    /// Başlama saati gelmemiş <b>etkinlik kayıtları hariçtir</b>. Aksi hâlde
+    /// üç gün sonraki bir turnuvaya kaydolan oyuncu, o güne kadar hiçbir oyun
+    /// oynayamaz ve arayüz onu sürekli "devam eden odanız var" diye boş bir
+    /// lobiye yönlendirirdi.
+    /// </remarks>
+    Task<Room?> GetActiveRoomForUserAsync(
+        Guid userId,
+        DateTime nowUtc,
+        CancellationToken cancellationToken = default);
+
+    // --- Zamanlanmış etkinlikler --------------------------------------------
+
+    /// <summary>Yaklaşan (henüz başlamamış) resmî etkinlikler.</summary>
+    Task<IReadOnlyList<Room>> GetUpcomingEventsAsync(
+        DateTime nowUtc,
+        int take,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Yönetim listesi: her durumdaki etkinlikler (sayfalı).</summary>
+    Task<PagedList<Room>> GetEventsForAdminAsync(
+        PageRequest pageRequest,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Başlama saati gelmiş, hâlâ beklemedeki etkinlikler.
+    /// </summary>
+    /// <remarks>
+    /// Arka plan hizmeti bunu düzenli aralıklarla çağırır. Katılımcılar da
+    /// yüklenir: hizmet, kimin başlatılacağına karar vermek için onlara bakar.
+    /// </remarks>
+    Task<IReadOnlyList<Room>> GetDueEventsAsync(
+        DateTime nowUtc,
+        CancellationToken cancellationToken = default);
 }
 
 public interface IRoomParticipantRepository : IEntityRepository<RoomParticipant>

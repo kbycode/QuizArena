@@ -71,3 +71,45 @@ public sealed class SubmitAnswerRequestValidator : AbstractValidator<SubmitAnswe
             .When(x => x.SelectedAnswerId is not null);
     }
 }
+
+/// <summary>
+/// Etkinlik oluşturma/güncelleme doğrulaması.
+/// </summary>
+/// <remarks>
+/// Başlangıç zamanının gelecekte olması <b>burada</b> kontrol edilmiyor:
+/// doğrulayıcılar saf (pure) tutuluyor, saat okumak bir yan etkidir ve
+/// doğrulayıcıyı test edilemez hâle getirir. O kural iş katmanında
+/// <c>IClock</c> üzerinden uygulanıyor.
+/// </remarks>
+public sealed class SaveEventRequestValidator : AbstractValidator<SaveEventRequest>
+{
+    public SaveEventRequestValidator()
+    {
+        RuleFor(x => x.CategoryId).NotEmpty().WithMessage("Kategori seçilmelidir.");
+
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Etkinlik adı zorunludur.")
+            .MinimumLength(3).WithMessage("Etkinlik adı en az 3 karakter olmalıdır.")
+            .MaximumLength(64).WithMessage("Etkinlik adı en fazla 64 karakter olabilir.");
+
+        RuleFor(x => x.Description)
+            .MaximumLength(512).WithMessage("Açıklama en fazla 512 karakter olabilir.")
+            .When(x => !string.IsNullOrWhiteSpace(x.Description));
+
+        RuleFor(x => x.ScheduledStartUtc)
+            .NotEmpty().WithMessage("Başlangıç zamanı zorunludur.");
+
+        RuleFor(x => x.QuestionCount)
+            .InclusiveBetween(GameRules.MinQuestionCount, GameRules.MaxQuestionCount)
+            .WithMessage($"Soru sayısı {GameRules.MinQuestionCount}-{GameRules.MaxQuestionCount} arasında olmalıdır.");
+
+        RuleFor(x => x.SecondsPerQuestion)
+            .InclusiveBetween(GameRules.MinSecondsPerQuestion, GameRules.MaxSecondsPerQuestion)
+            .WithMessage($"Soru süresi {GameRules.MinSecondsPerQuestion}-{GameRules.MaxSecondsPerQuestion} saniye arasında olmalıdır.");
+
+        // Etkinlik her zaman çok oyunculudur: alt sınır 2.
+        RuleFor(x => x.MaxPlayers)
+            .InclusiveBetween(2, GameRules.MaxPlayers)
+            .WithMessage($"Kontenjan 2-{GameRules.MaxPlayers} arasında olmalıdır.");
+    }
+}

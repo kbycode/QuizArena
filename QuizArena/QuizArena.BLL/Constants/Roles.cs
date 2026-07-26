@@ -12,4 +12,5 @@ public static class Roles
     public const string CategoryManage = SeedRoles.CategoryManage;
     public const string QuestionManage = SeedRoles.QuestionManage;
     public const string UserManage = SeedRoles.UserManage;
+    public const string EventManage = SeedRoles.EventManage;
 }

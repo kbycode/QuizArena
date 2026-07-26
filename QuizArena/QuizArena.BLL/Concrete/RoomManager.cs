@@ -104,7 +104,7 @@ public sealed class RoomManager : IRoomService
 
         // Aynı kullanıcının paralel odalarda olması skor/istatistik tutarlılığını
         // bozar ve arayüzde "hangi odadayım?" belirsizliği yaratır.
-        Room? existingRoom = await _roomRepository.GetActiveRoomForUserAsync(userId, cancellationToken);
+        Room? existingRoom = await _roomRepository.GetActiveRoomForUserAsync(userId, _clock.UtcNow, cancellationToken);
         if (existingRoom is not null)
         {
             throw new ConflictException(Messages.AlreadyInAnotherRoom);
@@ -201,7 +201,7 @@ public sealed class RoomManager : IRoomService
             throw new ConflictException(Messages.RoomFull);
         }
 
-        Room? otherRoom = await _roomRepository.GetActiveRoomForUserAsync(userId, cancellationToken);
+        Room? otherRoom = await _roomRepository.GetActiveRoomForUserAsync(userId, _clock.UtcNow, cancellationToken);
         if (otherRoom is not null && otherRoom.Id != room.Id)
         {
             throw new ConflictException(Messages.AlreadyInAnotherRoom);
@@ -315,6 +315,38 @@ public sealed class RoomManager : IRoomService
         await _notifier.GameStartedAsync(roomId, cancellationToken);
 
         return new SuccessDataResult<RoomResponse>(response, Messages.GameStarted);
+    }
+
+    /// <remarks>
+    /// Yalnızca <c>ScheduledEventStarter</c> tarafından çağrılır.
+    /// Ayrıntılı gerekçe için bkz. <see cref="IRoomService.StartScheduledEventAsync"/>.
+    /// </remarks>
+    [TransactionAspect]
+    public async Task<IResult> StartScheduledEventAsync(
+        Guid roomId,
+        CancellationToken cancellationToken = default)
+    {
+        Room room = await _roomRepository.GetAsync(r => r.Id == roomId, asNoTracking: false,
+                        cancellationToken: cancellationToken)
+                    ?? throw new NotFoundException(Messages.RoomNotFound);
+
+        // Güvenlik kapısı: bu metot kurucu kontrolü yapmıyor, o yüzden
+        // kapsamı daraltmak zorunda. Etkinlik olmayan bir odada asla çalışmaz.
+        if (!room.IsOfficialEvent || room.ScheduledStartUtc is null)
+        {
+            throw new BusinessException(Messages.NotAScheduledEvent);
+        }
+
+        // Kurucu kimliğini odanın kendisinden alıyoruz: "istek sahibi kurucu mu"
+        // kontrolü böylece bozulmadan geçer ve StartInternalAsync'in tek bir
+        // sürümü olur.
+        await StartInternalAsync(roomId, room.HostUserId, cancellationToken);
+
+        await _notifier.GameStartedAsync(roomId, cancellationToken);
+
+        _logger.LogInformation("Zamanlanmış etkinlik başlatıldı: {RoomId}", roomId);
+
+        return new SuccessResult(Messages.GameStarted);
     }
 
     /// <summary>
@@ -499,7 +531,7 @@ public sealed class RoomManager : IRoomService
     {
         Guid userId = _currentUser.RequireUserId();
 
-        Room? room = await _roomRepository.GetActiveRoomForUserAsync(userId, cancellationToken);
+        Room? room = await _roomRepository.GetActiveRoomForUserAsync(userId, _clock.UtcNow, cancellationToken);
 
         if (room is null)
         {

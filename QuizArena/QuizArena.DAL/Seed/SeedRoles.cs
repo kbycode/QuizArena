@@ -23,6 +23,7 @@ public static class SeedRoles
     public const string CategoryManage = "Category.Manage";
     public const string QuestionManage = "Question.Manage";
     public const string UserManage = "User.Manage";
+    public const string EventManage = "Event.Manage";
 
     /// <summary>Yetki adı → açıklama.</summary>
     public static IReadOnlyDictionary<string, string> All { get; } = new Dictionary<string, string>
@@ -30,6 +31,7 @@ public static class SeedRoles
         [Admin] = "Tam yönetici yetkisi.",
         [CategoryManage] = "Kategori ekleme, güncelleme ve kapatma.",
         [QuestionManage] = "Soru ve şık yönetimi.",
-        [UserManage] = "Kullanıcı listeleme, hesap kilidi açma ve yetki atama."
+        [UserManage] = "Kullanıcı listeleme, hesap kilidi açma ve yetki atama.",
+        [EventManage] = "Zamanlanmış etkinlik oluşturma ve yönetme."
     };
 }

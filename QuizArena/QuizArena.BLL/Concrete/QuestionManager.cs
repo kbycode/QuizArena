@@ -140,14 +140,16 @@ public sealed class QuestionManager : IQuestionService
 
         await _questionRepository.UpdateAsync(question, cancellationToken);
 
-        // Şıklar tümüyle yenilenir.
+        // Şıklar tümüyle yenilenir: eskiler yumuşak silinir, yenileri eklenir.
         //
         // Neden "eşleştirip güncelle" değil: şık kimlikleri geçmiş yarışma
         // cevaplarında (CompetitionAnswers.SelectedAnswerId) referans olarak
-        // durur. Mevcut bir şıkkın metnini/doğruluğunu değiştirmek, geçmiş
-        // yarışmaların sonucunu geçmişe dönük değiştirmek olurdu. Eski şıklar
-        // silinip yenileri eklendiğinde geçmiş cevaplar kendi kayıtlarındaki
-        // puanı korur.
+        // durur. Mevcut bir şıkkın metnini ya da doğruluğunu değiştirmek,
+        // geçmiş yarışmaların sonucunu geçmişe dönük değiştirmek olurdu.
+        //
+        // Silmenin YUMUŞAK olması da aynı referans yüzünden şart: satırlar
+        // kalıcı silinseydi yabancı anahtar kısıtı ihlal edilir ve bir kez
+        // oynanmış hiçbir soru güncellenemezdi.
         await _answerRepository.DeleteByQuestionAsync(id, cancellationToken);
 
         var answers = request.Answers

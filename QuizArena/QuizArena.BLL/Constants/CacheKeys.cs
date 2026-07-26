@@ -16,4 +16,5 @@ public static class CacheKeys
     public const string Questions = "Questions";
     public const string Leaderboard = "Leaderboard";
     public const string Achievements = "Achievements";
+    public const string Dashboard = "Dashboard";
 }

@@ -28,6 +28,15 @@
         <small>Çok oyunculu bilgi yarışması</small>
       </div>
     </div>
+    <!-- Gezinme yalnızca oturum açıkken görünür; "Yönetim" sekmesi ayrıca
+         kullanıcının yetkilerine bakılarak açılır (bkz. admin.js). -->
+    <nav id="mainNav" class="mainnav hidden" aria-label="Ana gezinme">
+      <button class="navlink active" data-screen="homeScreen" type="button">Ana sayfa</button>
+      <button id="adminNavButton" class="navlink hidden" data-screen="adminScreen" type="button">
+        Yönetim
+      </button>
+    </nav>
+
     <div class="topbar-actions">
       <a class="link" href="/swagger" target="_blank" rel="noopener">API dokümantasyonu</a>
       <div id="userBadge" class="user-badge hidden">
@@ -146,6 +155,14 @@
           </div>
 
           <div class="card">
+            <div class="section-head-inline">
+              <h3>📅 Yaklaşan etkinlikler</h3>
+              <button id="refreshEventsButton" class="btn btn-ghost btn-sm" type="button">Yenile</button>
+            </div>
+            <div id="upcomingEvents" class="event-list"></div>
+          </div>
+
+          <div class="card">
             <h3>🏆 Sıralama</h3>
             <ol id="leaderboard" class="leaderboard"></ol>
           </div>
@@ -219,10 +236,41 @@
         <button id="playAgainButton" class="btn btn-primary" type="button">Ana sayfaya dön</button>
       </div>
     </section>
+    <!-- ============================ YÖNETİM ============================ -->
+    <!--
+      Sekmeler ve panel içeriği JavaScript'te üretiliyor. Sebep yetki:
+      hangi sekmenin görüneceği kullanıcının rollerine bağlı, dolayısıyla
+      HTML'de sabit durmaları yanlış olurdu. Asıl kontrol yine sunucuda —
+      buradaki gizleme kullanıcıyı 403 alacağı ekrana götürmemek için.
+    -->
+    <section id="adminScreen" class="screen hidden">
+      <div class="section-head">
+        <h2>Yönetim</h2>
+        <p id="adminSubtitle"></p>
+      </div>
+
+      <div id="adminTabs" class="tabs tabs-wide" role="tablist"></div>
+      <div id="adminPanel"></div>
+    </section>
   </main>
 
   <div id="toast" class="toast hidden"></div>
 
+  <!--
+    Tek bir diyalog tüm yönetim formlarına ve onaylarına hizmet eder.
+    Yerleşik <dialog>: arka plan karartması, ESC ile kapanma ve odak tuzağı
+    tarayıcıdan geliyor — bunun için bir kütüphaneye gerek yok.
+  -->
+  <dialog id="adminDialog" class="dialog">
+    <h3 id="adminDialogTitle"></h3>
+    <div id="adminDialogBody"></div>
+    <div class="dialog-actions">
+      <button id="adminDialogCancel" class="btn btn-ghost" type="button">Vazgeç</button>
+      <button id="adminDialogConfirm" class="btn btn-primary" type="button">Kaydet</button>
+    </div>
+  </dialog>
+
   <script src="app.js"></script>
+  <script src="admin.js"></script>
 </body>
 </html>

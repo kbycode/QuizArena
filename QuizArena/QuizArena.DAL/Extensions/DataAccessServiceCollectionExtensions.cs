@@ -93,6 +93,9 @@ public static class DataAccessServiceCollectionExtensions
         services.AddScoped<IAchievementRepository, EfAchievementRepository>();
         services.AddScoped<IUserAchievementRepository, EfUserAchievementRepository>();
 
+        // Pano: varlık döndürmediği için EfEntityRepositoryBase'den türemez.
+        services.AddScoped<IDashboardRepository, EfDashboardRepository>();
+
         // --- Başlangıç verisi ------------------------------------------------
         services.Configure<SeedOptions>(configuration.GetSection(SeedOptions.SectionName));
         services.AddScoped<DatabaseSeeder>();

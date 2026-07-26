@@ -45,6 +45,9 @@ public sealed class EfRoomRepository
             pageRequest,
             predicate: r => r.Status == RoomStatus.Waiting
                             && r.Mode == RoomMode.PublicMultiplayer
+                            // Etkinlikler kendi listelerinde gösterilir; sıradan
+                            // "hemen katıl" listesine karışmamalılar.
+                            && !r.IsOfficialEvent
                             // Kapasitesi dolmuş odayı listelemenin anlamı yok.
                             && r.Participants.Count < r.MaxPlayers,
             orderBy: q => q.OrderByDescending(r => r.CreatedAtUtc),
@@ -57,14 +60,65 @@ public sealed class EfRoomRepository
     public Task<bool> JoinCodeExistsAsync(string joinCode, CancellationToken cancellationToken = default)
         => AnyAsync(r => r.JoinCode == joinCode, cancellationToken);
 
-    public Task<Room?> GetActiveRoomForUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    public Task<Room?> GetActiveRoomForUserAsync(
+        Guid userId,
+        DateTime nowUtc,
+        CancellationToken cancellationToken = default)
         => Context.Rooms
             .AsNoTracking()
             .Include(r => r.Category)
             .Where(r => (r.Status == RoomStatus.Waiting || r.Status == RoomStatus.InProgress)
-                        && r.Participants.Any(p => p.UserId == userId))
+                        && r.Participants.Any(p => p.UserId == userId)
+                        // Saati gelmemiş etkinlik kaydı "devam eden oda" sayılmaz.
+                        && !(r.IsOfficialEvent
+                             && r.Status == RoomStatus.Waiting
+                             && r.ScheduledStartUtc > nowUtc))
             .OrderByDescending(r => r.CreatedAtUtc)
             .FirstOrDefaultAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<Room>> GetUpcomingEventsAsync(
+        DateTime nowUtc,
+        int take,
+        CancellationToken cancellationToken = default)
+        => await Context.Rooms
+            .AsNoTracking()
+            .Include(r => r.Category)
+            .Include(r => r.HostUser)
+            .Include(r => r.Participants)
+            .Where(r => r.IsOfficialEvent
+                        && r.Status == RoomStatus.Waiting
+                        && r.ScheduledStartUtc != null
+                        && r.ScheduledStartUtc > nowUtc)
+            .OrderBy(r => r.ScheduledStartUtc)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+
+    public Task<PagedList<Room>> GetEventsForAdminAsync(
+        PageRequest pageRequest,
+        CancellationToken cancellationToken = default)
+        => GetPagedListAsync(
+            pageRequest,
+            predicate: r => r.IsOfficialEvent,
+            // Yaklaşanlar üstte, geçmişler altta: yöneticinin ilgilendiği
+            // kayıtlar her zaman ilk sayfada.
+            orderBy: q => q.OrderByDescending(r => r.ScheduledStartUtc),
+            include: q => q
+                .Include(r => r.Category)
+                .Include(r => r.HostUser)
+                .Include(r => r.Participants),
+            cancellationToken: cancellationToken);
+
+    public async Task<IReadOnlyList<Room>> GetDueEventsAsync(
+        DateTime nowUtc,
+        CancellationToken cancellationToken = default)
+        => await Context.Rooms
+            .Include(r => r.Participants)
+            .Where(r => r.IsOfficialEvent
+                        && r.Status == RoomStatus.Waiting
+                        && r.ScheduledStartUtc != null
+                        && r.ScheduledStartUtc <= nowUtc)
+            .OrderBy(r => r.ScheduledStartUtc)
+            .ToListAsync(cancellationToken);
 }
 
 public sealed class EfRoomParticipantRepository

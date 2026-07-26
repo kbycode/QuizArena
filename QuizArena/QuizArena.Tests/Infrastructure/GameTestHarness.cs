@@ -70,6 +70,12 @@ public sealed class GameTestHarness : IAsyncDisposable
             statisticService, achievementService, CurrentUser, new NullGameNotifier(), clock,
             NullLogger<GameManager>.Instance);
 
+        Events = new EventManager(
+            rooms, participants, categories, questions, Rooms, CurrentUser, clock,
+            NullLogger<EventManager>.Instance);
+
+        Questions = new QuestionManager(questions, new EfAnswerRepository(_context), categories);
+
         Statistics = statisticService;
         Achievements = achievementService;
     }
@@ -78,6 +84,8 @@ public sealed class GameTestHarness : IAsyncDisposable
     public FakeCurrentUserService CurrentUser { get; }
     public IRoomService Rooms { get; }
     public IGameService Game { get; }
+    public IEventService Events { get; }
+    public IQuestionService Questions { get; }
     public IStatisticService Statistics { get; }
     public IAchievementService Achievements { get; }
 

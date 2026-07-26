@@ -40,10 +40,16 @@ const DIFFICULTY_LABELS = { Easy: 'Kolay', Medium: 'Orta', Hard: 'Zor' };
 //  Kısayollar
 // ---------------------------------------------------------------------------
 const $ = (id) => document.getElementById(id);
-const screens = ['authScreen', 'homeScreen', 'lobbyScreen', 'gameScreen', 'resultScreen'];
+const screens = ['authScreen', 'homeScreen', 'lobbyScreen', 'gameScreen', 'resultScreen', 'adminScreen'];
 
 function showScreen(id) {
   screens.forEach((screen) => $(screen).classList.toggle('hidden', screen !== id));
+
+  // Üst çubuktaki gezinme yalnızca iki hedef tanır; oyun ve lobi ekranlarında
+  // hiçbiri işaretli kalmasın.
+  document.querySelectorAll('.navlink').forEach((link) => {
+    link.classList.toggle('active', link.dataset.screen === id);
+  });
 }
 
 let toastHandle = null;
@@ -210,6 +216,8 @@ function clearSession() {
   state.room = null;
   state.question = null;
   $('userBadge').classList.add('hidden');
+  $('mainNav').classList.add('hidden');
+  $('adminNavButton').classList.add('hidden');
   showScreen('authScreen');
 }
 
@@ -304,12 +312,17 @@ async function withButtonBusy(button, action) {
 // ---------------------------------------------------------------------------
 async function enterApp() {
   showScreen('homeScreen');
+  $('mainNav').classList.remove('hidden');
+
+  // Yetkilere göre "Yönetim" sekmesini aç (admin.js).
+  refreshAdminAccess();
 
   await Promise.all([
     loadCategories(),
     loadLeaderboard(),
     loadMyStatistics(),
-    loadOpenRooms()
+    loadOpenRooms(),
+    loadUpcomingEvents()
   ]);
 
   // Sayfa yenilendiyse devam eden oyuna geri dön.
@@ -902,16 +915,26 @@ document.addEventListener('keydown', (event) => {
 
 // ---------------------------------------------------------------------------
 //  Başlangıç
+//
+//  DOMContentLoaded bekleniyor çünkü bu dosya, kendisinden SONRA yüklenen
+//  admin.js içindeki fonksiyonları çağırıyor (enterApp → refreshAdminAccess).
+//  Doğrudan çalıştırılsaydı o fonksiyon henüz tanımlı olmaz, oturumu geri
+//  yükleme denemesi ReferenceError ile düşer ve kullanıcı her sayfa
+//  yenilemesinde giriş ekranına atılırdı. Klasik script'lerin tamamı bu olay
+//  tetiklenmeden önce ayrıştırılıp çalıştırılır.
 // ---------------------------------------------------------------------------
-(async function initialize() {
+document.addEventListener('DOMContentLoaded', async () => {
   if (restoreSession()) {
     try {
       await enterApp();
       return;
-    } catch {
+    } catch (error) {
+      // Jeton geçersizse oturumu temizle; ama sebebi görünür kalsın, aksi
+      // hâlde bir kod hatası "oturum süresi doldu" gibi görünür.
+      console.error('Oturum geri yüklenemedi:', error);
       clearSession();
     }
   }
 
   showScreen('authScreen');
-})();
+});

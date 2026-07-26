@@ -1,3 +1,5 @@
+using QuizArena.Entities.Enums;
+
 namespace QuizArena.DAL.ReadModels;
 
 /// <summary>
@@ -54,3 +56,55 @@ public sealed record LeaderboardRow(
     int TotalQuestionsAnswered,
     int TotalCorrectAnswers,
     int BestStreak);
+
+// ---------------------------------------------------------------------------
+//  Yönetim panosu (dashboard)
+// ---------------------------------------------------------------------------
+
+/// <summary>
+/// Panonun tek seferde okunan sayaçları.
+/// </summary>
+/// <remarks>
+/// Alanların hepsi ayrı ayrı sorgulanabilirdi; tek kayıtta toplanmasının
+/// nedeni <b>çağıran tarafın sözleşmesini sabitlemek</b>. Böylece BLL,
+/// veri katmanının kaç sorgu attığını bilmek zorunda kalmaz ve ileride
+/// sorgular tek bir birleşik SQL'e indirgense bile arayüz değişmez.
+/// </remarks>
+public sealed record DashboardCounters(
+    int TotalUsers,
+    int ActiveUsers,
+    int NewUsersInWindow,
+    int LockedUsers,
+    int TotalCategories,
+    int ActiveCategories,
+    int TotalQuestions,
+    int ActiveQuestions,
+    int FinishedCompetitions,
+    int CompetitionsInWindow,
+    int LiveRooms,
+    long TotalAnswers,
+    long TotalCorrectAnswers);
+
+/// <summary>Bir günün etkinlik özeti.</summary>
+public sealed record DailyActivityRow(DateTime Date, int Competitions, int Players);
+
+/// <summary>Kategori kırılımı: soru sayısı, oynanma ve doğruluk.</summary>
+public sealed record CategoryBreakdownRow(
+    Guid CategoryId,
+    string Name,
+    string? Icon,
+    string? ColorHex,
+    bool IsActive,
+    int QuestionCount,
+    int CompetitionCount,
+    long TimesAsked,
+    long TimesAnsweredCorrectly);
+
+/// <summary>Soru başarı istatistiği (en zor / en kolay listeleri için).</summary>
+public sealed record QuestionStatisticRow(
+    Guid QuestionId,
+    string Text,
+    string CategoryName,
+    QuestionDifficulty Difficulty,
+    int TimesAsked,
+    int TimesAnsweredCorrectly);
