@@ -34,6 +34,25 @@ public sealed class SeedOptions
     public bool CreateDemoPlayers { get; set; }
 
     /// <summary>
+    /// Başlangıç içeriğinin dili: <c>tr</c> veya <c>en</c>.
+    /// </summary>
+    /// <remarks>
+    /// <b>İçerik dili, arayüz dilinden ayrıdır.</b> Arayüz her istekte
+    /// <c>Accept-Language</c> ile değişebilir; soru havuzu ise veritabanına
+    /// bir kez yazılır. İki dilin soruları bir arada yüklenseydi oyuncu, kendi
+    /// dilinde olmayan sorularla karşılaşırdı — bu yüzden tek set seçilir.
+    /// <para>
+    /// Yalnızca <b>boş</b> bir veritabanında etkilidir; seed idempotent
+    /// çalıştığı için var olan içeriği çevirmez.
+    /// </para>
+    /// </remarks>
+    public string ContentLanguage { get; set; } = "tr";
+
+    /// <summary>Seçilen içerik dili İngilizce mi?</summary>
+    public bool UseEnglishContent =>
+        ContentLanguage.Trim().StartsWith("en", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
     /// <see cref="AdminPassword"/> verilmediğinde rastgele bir parola üretilip
     /// loga yazılmasına izin verilsin mi?
     /// </summary>

@@ -95,7 +95,7 @@ public sealed class DatabaseSeeder
             .Select(a => a.Code)
             .ToListAsync(cancellationToken);
 
-        var missing = SeedAchievements.Create()
+        var missing = SeedAchievements.Create(_options.UseEnglishContent)
             .Where(a => !existingCodes.Contains(a.Code))
             .ToList();
 
@@ -121,7 +121,7 @@ public sealed class DatabaseSeeder
 
         var newCategories = new List<Category>();
 
-        foreach (SeedCategory seed in SeedContent.Categories)
+        foreach (SeedCategory seed in SeedCatalog.For(_options))
         {
             if (existingSlugs.Contains(seed.Slug))
             {

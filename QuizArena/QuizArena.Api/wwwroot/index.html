@@ -25,24 +25,32 @@
       <span class="brand-icon">🧠</span>
       <div>
         <strong>QuizArena</strong>
-        <small>Çok oyunculu bilgi yarışması</small>
+        <small data-i18n="brand.tagline">Çok oyunculu bilgi yarışması</small>
       </div>
     </div>
     <!-- Gezinme yalnızca oturum açıkken görünür; "Yönetim" sekmesi ayrıca
          kullanıcının yetkilerine bakılarak açılır (bkz. admin.js). -->
-    <nav id="mainNav" class="mainnav hidden" aria-label="Ana gezinme">
-      <button class="navlink active" data-screen="homeScreen" type="button">Ana sayfa</button>
-      <button id="adminNavButton" class="navlink hidden" data-screen="adminScreen" type="button">
-        Yönetim
-      </button>
+    <nav id="mainNav" class="mainnav hidden" data-i18n-label="nav.home">
+      <button class="navlink active" data-screen="homeScreen" type="button"
+              data-i18n="nav.home">Ana sayfa</button>
+      <button id="adminNavButton" class="navlink hidden" data-screen="adminScreen" type="button"
+              data-i18n="nav.admin">Yönetim</button>
     </nav>
 
     <div class="topbar-actions">
-      <a class="link" href="/swagger" target="_blank" rel="noopener">API dokümantasyonu</a>
+      <!-- Dil seçici: varsayılan cihaz dilinden gelir, seçim tarayıcıda saklanır. -->
+      <select id="languageSelect" class="lang-select" data-i18n-label="nav.language">
+        <option value="tr">Türkçe</option>
+        <option value="en">English</option>
+      </select>
+
+      <a class="link" href="/swagger" target="_blank" rel="noopener"
+         data-i18n="nav.apiDocs">API dokümantasyonu</a>
       <div id="userBadge" class="user-badge hidden">
         <span id="userNickname"></span>
         <span id="userScore" class="chip"></span>
-        <button id="logoutButton" class="btn btn-ghost btn-sm" type="button">Çıkış</button>
+        <button id="logoutButton" class="btn btn-ghost btn-sm" type="button"
+                data-i18n="nav.logout">Çıkış</button>
       </div>
     </div>
   </header>
@@ -52,40 +60,40 @@
     <section id="authScreen" class="screen">
       <div class="card card-narrow">
         <div class="tabs">
-          <button class="tab active" data-tab="login" type="button">Giriş yap</button>
-          <button class="tab" data-tab="register" type="button">Kayıt ol</button>
+          <button class="tab active" data-tab="login" type="button" data-i18n="auth.login">Giriş yap</button>
+          <button class="tab" data-tab="register" type="button" data-i18n="auth.register">Kayıt ol</button>
         </div>
 
         <form id="loginForm" class="form">
-          <label>E-posta
+          <label><span data-i18n="auth.email">E-posta</span>
             <input name="email" type="email" autocomplete="email" required>
           </label>
-          <label>Parola
+          <label><span data-i18n="auth.password">Parola</span>
             <input name="password" type="password" autocomplete="current-password" required>
           </label>
-          <button class="btn btn-primary" type="submit">Giriş yap</button>
+          <button class="btn btn-primary" type="submit" data-i18n="auth.login">Giriş yap</button>
         </form>
 
         <form id="registerForm" class="form hidden">
           <div class="grid-2">
-            <label>Ad
+            <label><span data-i18n="auth.firstName">Ad</span>
               <input name="firstName" type="text" autocomplete="given-name" required>
             </label>
-            <label>Soyad
+            <label><span data-i18n="auth.lastName">Soyad</span>
               <input name="lastName" type="text" autocomplete="family-name" required>
             </label>
           </div>
-          <label>Takma ad
+          <label><span data-i18n="auth.nickname">Takma ad</span>
             <input name="nickname" type="text" minlength="3" maxlength="32" required>
           </label>
-          <label>E-posta
+          <label><span data-i18n="auth.email">E-posta</span>
             <input name="email" type="email" autocomplete="email" required>
           </label>
-          <label>Parola
+          <label><span data-i18n="auth.password">Parola</span>
             <input name="password" type="password" autocomplete="new-password" minlength="8" required>
-            <small class="hint">En az 8 karakter; büyük harf, küçük harf ve rakam içermeli.</small>
+            <small class="hint" data-i18n="auth.passwordHint">En az 8 karakter; büyük harf, küçük harf ve rakam içermeli.</small>
           </label>
-          <button class="btn btn-primary" type="submit">Kayıt ol ve başla</button>
+          <button class="btn btn-primary" type="submit" data-i18n="auth.registerAndStart">Kayıt ol ve başla</button>
         </form>
       </div>
     </section>
@@ -95,15 +103,15 @@
       <div class="home-layout">
         <div>
           <div class="section-head">
-            <h2>Kategori seç</h2>
-            <p>Bir kategori seçip tek başına ya da arkadaşlarınla yarış.</p>
+            <h2 data-i18n="home.pickCategory">Kategori seç</h2>
+            <p data-i18n="home.pickCategoryHint">Bir kategori seçip tek başına ya da arkadaşlarınla yarış.</p>
           </div>
           <div id="categoryGrid" class="category-grid"></div>
 
           <div class="card">
-            <h3>Oyun ayarları</h3>
+            <h3 data-i18n="home.gameSettings">Oyun ayarları</h3>
             <div class="grid-3">
-              <label>Soru sayısı
+              <label><span data-i18n="home.questionCount">Soru sayısı</span>
                 <select id="questionCount">
                   <option value="5">5 soru</option>
                   <option value="10" selected>10 soru</option>
@@ -111,7 +119,7 @@
                   <option value="20">20 soru</option>
                 </select>
               </label>
-              <label>Soru süresi
+              <label><span data-i18n="home.secondsPerQuestion">Soru süresi</span>
                 <select id="secondsPerQuestion">
                   <option value="10">10 saniye</option>
                   <option value="15">15 saniye</option>
@@ -119,30 +127,32 @@
                   <option value="30">30 saniye</option>
                 </select>
               </label>
-              <label>Oyun kipi
+              <label><span data-i18n="home.roomMode">Oyun kipi</span>
                 <select id="roomMode">
-                  <option value="Solo" selected>Tek kişilik</option>
-                  <option value="PrivateMultiplayer">Kodla davet (özel)</option>
-                  <option value="PublicMultiplayer">Herkese açık oda</option>
+                  <option value="Solo" selected data-i18n="home.modeSolo">Tek kişilik</option>
+                  <option value="PrivateMultiplayer" data-i18n="home.modePrivate">Kodla davet (özel)</option>
+                  <option value="PublicMultiplayer" data-i18n="home.modePublic">Herkese açık oda</option>
                 </select>
               </label>
             </div>
             <div class="row">
-              <button id="startGameButton" class="btn btn-primary" type="button" disabled>
-                Yarışmayı başlat
-              </button>
+              <button id="startGameButton" class="btn btn-primary" type="button" disabled
+                      data-i18n="home.start">Yarışmayı başlat</button>
               <div class="join-inline">
-                <input id="joinCodeInput" type="text" placeholder="Katılım kodu" maxlength="6"
+                <input id="joinCodeInput" type="text" maxlength="6"
+                       data-i18n-placeholder="home.joinCode"
                        autocapitalize="characters" spellcheck="false">
-                <button id="joinRoomButton" class="btn btn-ghost" type="button">Odaya katıl</button>
+                <button id="joinRoomButton" class="btn btn-ghost" type="button"
+                        data-i18n="home.joinRoom">Odaya katıl</button>
               </div>
             </div>
           </div>
 
           <div class="card">
             <div class="section-head-inline">
-              <h3>Açık odalar</h3>
-              <button id="refreshRoomsButton" class="btn btn-ghost btn-sm" type="button">Yenile</button>
+              <h3 data-i18n="home.openRooms">Açık odalar</h3>
+              <button id="refreshRoomsButton" class="btn btn-ghost btn-sm" type="button"
+                      data-i18n="common.refresh">Yenile</button>
             </div>
             <div id="openRooms" class="room-list"></div>
           </div>
@@ -150,25 +160,26 @@
 
         <aside class="sidebar">
           <div class="card">
-            <h3>İstatistiklerim</h3>
+            <h3 data-i18n="home.myStats">İstatistiklerim</h3>
             <div id="myStats" class="stats"></div>
           </div>
 
           <div class="card">
             <div class="section-head-inline">
-              <h3>📅 Yaklaşan etkinlikler</h3>
-              <button id="refreshEventsButton" class="btn btn-ghost btn-sm" type="button">Yenile</button>
+              <h3 data-i18n="home.upcomingEvents">📅 Yaklaşan etkinlikler</h3>
+              <button id="refreshEventsButton" class="btn btn-ghost btn-sm" type="button"
+                      data-i18n="common.refresh">Yenile</button>
             </div>
             <div id="upcomingEvents" class="event-list"></div>
           </div>
 
           <div class="card">
-            <h3>🏆 Sıralama</h3>
+            <h3 data-i18n="home.leaderboard">🏆 Sıralama</h3>
             <ol id="leaderboard" class="leaderboard"></ol>
           </div>
 
           <div class="card">
-            <h3>Rozetlerim</h3>
+            <h3 data-i18n="home.myBadges">Rozetlerim</h3>
             <div id="myAchievements" class="badges"></div>
           </div>
         </aside>
@@ -178,15 +189,17 @@
     <!-- ============================ LOBİ ============================ -->
     <section id="lobbyScreen" class="screen hidden">
       <div class="card card-narrow">
-        <h2 id="lobbyTitle">Oyuncular bekleniyor</h2>
-        <p class="muted">Arkadaşların bu kodla odaya katılabilir:</p>
+        <h2 id="lobbyTitle" data-i18n="lobby.title">Oyuncular bekleniyor</h2>
+        <p class="muted" data-i18n="lobby.shareCode">Arkadaşların bu kodla odaya katılabilir:</p>
         <div class="join-code" id="lobbyJoinCode">------</div>
         <div id="lobbyParticipants" class="participant-list"></div>
         <div class="row">
-          <button id="lobbyStartButton" class="btn btn-primary" type="button">Yarışmayı başlat</button>
-          <button id="lobbyCancelButton" class="btn btn-ghost" type="button">Odayı iptal et</button>
+          <button id="lobbyStartButton" class="btn btn-primary" type="button"
+                  data-i18n="lobby.start">Yarışmayı başlat</button>
+          <button id="lobbyCancelButton" class="btn btn-ghost" type="button"
+                  data-i18n="lobby.cancel">Odayı iptal et</button>
         </div>
-        <small class="hint">Oda durumu birkaç saniyede bir yenilenir.</small>
+        <small class="hint" data-i18n="lobby.refreshHint">Oda durumu birkaç saniyede bir yenilenir.</small>
       </div>
     </section>
 
@@ -214,7 +227,7 @@
 
         <aside class="sidebar" id="liveScoreboardCard">
           <div class="card">
-            <h3>Canlı skor</h3>
+            <h3 data-i18n="game.liveScore">Canlı skor</h3>
             <ol id="liveScoreboard" class="leaderboard"></ol>
           </div>
         </aside>
@@ -225,15 +238,16 @@
     <section id="resultScreen" class="screen hidden">
       <div class="card card-narrow result-card">
         <div id="resultEmoji" class="result-emoji">🎉</div>
-        <h2 id="resultTitle">Yarışma tamamlandı</h2>
+        <h2 id="resultTitle" data-i18n="result.title">Yarışma tamamlandı</h2>
         <div id="resultScore" class="result-score"></div>
         <div id="resultStats" class="stats"></div>
         <div id="newAchievements" class="badges"></div>
         <div id="resultScoreboardWrapper" class="hidden">
-          <h3>Skor tablosu</h3>
+          <h3 data-i18n="result.scoreboard">Skor tablosu</h3>
           <ol id="resultScoreboard" class="leaderboard"></ol>
         </div>
-        <button id="playAgainButton" class="btn btn-primary" type="button">Ana sayfaya dön</button>
+        <button id="playAgainButton" class="btn btn-primary" type="button"
+                data-i18n="result.backHome">Ana sayfaya dön</button>
       </div>
     </section>
     <!-- ============================ YÖNETİM ============================ -->
@@ -245,7 +259,7 @@
     -->
     <section id="adminScreen" class="screen hidden">
       <div class="section-head">
-        <h2>Yönetim</h2>
+        <h2 data-i18n="admin.title">Yönetim</h2>
         <p id="adminSubtitle"></p>
       </div>
 
@@ -265,11 +279,15 @@
     <h3 id="adminDialogTitle"></h3>
     <div id="adminDialogBody"></div>
     <div class="dialog-actions">
-      <button id="adminDialogCancel" class="btn btn-ghost" type="button">Vazgeç</button>
+      <button id="adminDialogCancel" class="btn btn-ghost" type="button"
+              data-i18n="common.cancel">Vazgeç</button>
       <button id="adminDialogConfirm" class="btn btn-primary" type="button">Kaydet</button>
     </div>
   </dialog>
 
+  <!-- Sıra önemli: i18n.js, app.js ve admin.js tarafından kullanılan
+       t() fonksiyonunu tanımlar. -->
+  <script src="i18n.js"></script>
   <script src="app.js"></script>
   <script src="admin.js"></script>
 </body>

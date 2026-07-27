@@ -10,6 +10,7 @@ using QuizArena.BLL.DependencyResolvers.Autofac;
 using QuizArena.BLL.Extensions;
 using QuizArena.BLL.Notifications;
 using QuizArena.Core.Extensions;
+using QuizArena.Core.Localization;
 using QuizArena.DAL.Extensions;
 using QuizArena.DAL.Seed;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -124,6 +125,18 @@ app.UseAppExceptionHandling();
 // 3) Güvenlik başlıkları: hata yanıtlarında da bulunmaları gerekir.
 app.UseMiddleware<SecurityHeadersMiddleware>();
 
+// 4) Dil: Accept-Language başlığına göre kültür seçilir.
+//
+//    Hata yönetiminden SONRA olması gerekiyor — yerelleştirme kurulmadan önce
+//    oluşan bir istisnanın mesajı varsayılan dilde çıkar, bu kabul edilebilir.
+//    Ama sıralamanın asıl kritik yanı controller'lardan ÖNCE olması: iş
+//    katmanı mesajı üretirken CultureInfo.CurrentUICulture çoktan ayarlanmış
+//    olmalı.
+app.UseRequestLocalization(new RequestLocalizationOptions()
+    .SetDefaultCulture(CurrentLanguage.SupportedCultures[0])
+    .AddSupportedCultures(CurrentLanguage.SupportedCultures)
+    .AddSupportedUICultures(CurrentLanguage.SupportedCultures));
+
 if (app.Environment.IsDevelopment())
 {
     // Swagger yalnızca geliştirmede. Üretimde açık bırakmak, tüm uç listesini
@@ -144,7 +157,7 @@ else
     app.UseHttpsRedirection();
 }
 
-// 4) Statik dosyalar: wwwroot altındaki oynanabilir demo arayüzü.
+// 5) Statik dosyalar: wwwroot altındaki oynanabilir demo arayüzü.
 app.UseDefaultFiles();
 app.UseStaticFiles(new StaticFileOptions
 {
@@ -171,11 +184,11 @@ app.UseStaticFiles(new StaticFileOptions
     }
 });
 
-// 5) CORS, kimlik doğrulamadan önce: ön kontrol (preflight) istekleri kimlik
+// 6) CORS, kimlik doğrulamadan önce: ön kontrol (preflight) istekleri kimlik
 //    doğrulama gerektirmez ve gerektirirse tarayıcı isteği hiç göndermez.
 app.UseCors(CorsOptions.PolicyName);
 
-// 6) Hız sınırı, kimlik doğrulamadan SONRA: sınır kullanıcı bazlı
+// 7) Hız sınırı, kimlik doğrulamadan SONRA: sınır kullanıcı bazlı
 //    bölümlendiği için kimliğin çözülmüş olması gerekir.
 app.UseAuthentication();
 app.UseRateLimiter();

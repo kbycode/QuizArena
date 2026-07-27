@@ -26,20 +26,14 @@ const ROLES = {
   eventManage: 'Event.Manage'
 };
 
-const ROLE_LABELS = {
-  [ROLES.admin]: 'Yönetici',
-  [ROLES.categoryManage]: 'Kategori yönetimi',
-  [ROLES.questionManage]: 'Soru yönetimi',
-  [ROLES.userManage]: 'Kullanıcı yönetimi',
-  [ROLES.eventManage]: 'Etkinlik yönetimi'
-};
+// Etiketler dile bağlı olduğu için sabit tablo yerine çeviriden okunuyor;
+// sunucudan bilinmeyen bir değer gelirse ham hâli gösterilir.
+const roleLabel = (role) =>
+  (Object.values(ROLES).includes(role) ? t(`role.${role}`) : role);
 
-const ROOM_STATUS_LABELS = {
-  Waiting: 'Planlandı',
-  InProgress: 'Devam ediyor',
-  Finished: 'Tamamlandı',
-  Cancelled: 'İptal edildi'
-};
+const ROOM_STATUSES = ['Waiting', 'InProgress', 'Finished', 'Cancelled'];
+const roomStatusLabel = (status) =>
+  (ROOM_STATUSES.includes(status) ? t(`roomStatus.${status}`) : status);
 
 /** Sunucudaki GameRules ile aynı değerler; burada yalnızca metin ve sınır. */
 const DASHBOARD_MIN_TIMES_ASKED = 3;
@@ -91,7 +85,7 @@ document.querySelectorAll('.navlink').forEach((link) => {
 
 async function openAdmin() {
   if (!canAccessAdmin()) {
-    toast('Bu bölüme erişim yetkiniz yok.', 'error');
+    toast(t('admin.noAccess'), 'error');
     return;
   }
 
@@ -110,25 +104,25 @@ function defaultTab() {
 
 function adminSubtitle() {
   if (isAdmin()) {
-    return 'Sistem özeti, soru havuzu, kategoriler, etkinlikler ve kullanıcı hesapları.';
+    return t('admin.subtitleFull');
   }
 
   const parts = [];
-  if (canManageContent()) parts.push('soru ve kategoriler');
-  if (canManageEvents()) parts.push('etkinlikler');
-  if (canManageUsers()) parts.push('kullanıcı hesapları');
-  return `Yetkiniz dâhilinde: ${parts.join(', ')}.`;
+  if (canManageContent()) parts.push(t('admin.areaContent'));
+  if (canManageEvents()) parts.push(t('admin.areaEvents'));
+  if (canManageUsers()) parts.push(t('admin.areaUsers'));
+  return t('admin.subtitlePartial', { areas: parts.join(', ') });
 }
 
 function availableTabs() {
   const tabs = [];
-  if (isAdmin()) tabs.push({ id: 'dashboard', label: '📊 Pano' });
+  if (isAdmin()) tabs.push({ id: 'dashboard', label: t('admin.tabDashboard') });
   if (canManageContent()) {
-    tabs.push({ id: 'questions', label: '❓ Sorular' });
-    tabs.push({ id: 'categories', label: '🏷️ Kategoriler' });
+    tabs.push({ id: 'questions', label: t('admin.tabQuestions') });
+    tabs.push({ id: 'categories', label: t('admin.tabCategories') });
   }
-  if (canManageEvents()) tabs.push({ id: 'events', label: '📅 Etkinlikler' });
-  if (canManageUsers()) tabs.push({ id: 'users', label: '👥 Kullanıcılar' });
+  if (canManageEvents()) tabs.push({ id: 'events', label: t('admin.tabEvents') });
+  if (canManageUsers()) tabs.push({ id: 'users', label: t('admin.tabUsers') });
   return tabs;
 }
 
@@ -150,7 +144,7 @@ async function showAdminTab(tab) {
     button.setAttribute('aria-selected', String(button.dataset.adminTab === tab));
   });
 
-  $('adminPanel').innerHTML = '<div class="empty">Yükleniyor…</div>';
+  $('adminPanel').innerHTML = `<div class="empty">${t('common.loading')}</div>`;
 
   const loaders = {
     dashboard: loadDashboard,
@@ -176,12 +170,12 @@ async function showAdminTab(tab) {
 
 let dialogConfirmHandler = null;
 
-function openDialog({ title, body, confirmLabel = 'Kaydet', danger = false, onConfirm }) {
+function openDialog({ title, body, confirmLabel, danger = false, onConfirm }) {
   $('adminDialogTitle').textContent = title;
   $('adminDialogBody').innerHTML = body;
 
   const confirmButton = $('adminDialogConfirm');
-  confirmButton.textContent = confirmLabel;
+  confirmButton.textContent = confirmLabel ?? t('common.save');
   confirmButton.className = danger ? 'btn btn-danger' : 'btn btn-primary';
 
   dialogConfirmHandler = onConfirm;
@@ -253,7 +247,7 @@ const safeRatio = (value, max) => (max > 0 ? value / max : 0);
  */
 function activityChart(points) {
   if (points.length === 0) {
-    return '<div class="empty">Bu aralıkta tamamlanmış yarışma yok.</div>';
+    return `<div class="empty">${t('dash.activityEmpty')}</div>`;
   }
 
   const width = 760;
@@ -276,7 +270,9 @@ function activityChart(points) {
   const bars = points.map((point, index) => `
     <rect class="chart-bar" x="${(x(index) - barWidth / 2).toFixed(1)}" y="${y(point.competitions).toFixed(1)}"
           width="${barWidth.toFixed(1)}" height="${(padTop + innerHeight - y(point.competitions)).toFixed(1)}"
-          rx="3"><title>${escapeHtml(shortDate(point.date))}: ${point.competitions} yarışma</title></rect>
+          rx="3"><title>${escapeHtml(t('dash.barTooltip', {
+            date: shortDate(point.date), count: point.competitions
+          }))}</title></rect>
   `).join('');
 
   const line = points.map((point, index) => `${x(index).toFixed(1)},${y(point.players).toFixed(1)}`).join(' ');
@@ -296,11 +292,11 @@ function activityChart(points) {
 
   return `
     <div class="chart-legend">
-      <span><i class="swatch swatch-bar"></i>Yarışma</span>
-      <span><i class="swatch swatch-line"></i>Benzersiz oyuncu</span>
+      <span><i class="swatch swatch-bar"></i>${t('dash.legendGames')}</span>
+      <span><i class="swatch swatch-line"></i>${t('dash.legendPlayers')}</span>
     </div>
     <svg class="chart" viewBox="0 0 ${width} ${height}" role="img"
-         aria-label="Günlük tamamlanan yarışma ve benzersiz oyuncu sayısı">
+         aria-label="${escapeHtml(t('dash.a11yActivity'))}">
       ${gridlines}
       ${bars}
       <polyline class="chart-line" points="${line}" />
@@ -313,7 +309,7 @@ function accuracyChart(categories) {
   const rows = categories.filter((category) => category.timesAsked > 0);
 
   if (rows.length === 0) {
-    return '<div class="empty">Henüz cevaplanmış soru yok.</div>';
+    return `<div class="empty">${t('dash.categoryAccuracyEmpty')}</div>`;
   }
 
   const rowHeight = 30;
@@ -330,20 +326,20 @@ function accuracyChart(categories) {
       <text class="chart-label chart-label-strong" x="0" y="${top + 19}">${escapeHtml(trim(category.name, 16))}</text>
       <rect class="chart-track" x="${labelWidth}" y="${top + 8}" width="${barMax}" height="12" rx="6" />
       <rect x="${labelWidth}" y="${top + 8}" width="${barLength.toFixed(1)}" height="12" rx="6"
-            fill="${escapeHtml(color)}"><title>${escapeHtml(category.name)}: %${category.accuracyPercentage}</title></rect>
-      <text class="chart-label" x="${width - 4}" y="${top + 19}" text-anchor="end">%${category.accuracyPercentage}</text>`;
+            fill="${escapeHtml(color)}"><title>${escapeHtml(category.name)}: ${percent(category.accuracyPercentage)}</title></rect>
+      <text class="chart-label" x="${width - 4}" y="${top + 19}" text-anchor="end">${percent(category.accuracyPercentage)}</text>`;
   }).join('');
 
   return `
     <svg class="chart" viewBox="0 0 ${width} ${rows.length * rowHeight}" role="img"
-         aria-label="Kategori bazlı doğruluk oranı">${bars}</svg>`;
+         aria-label="${escapeHtml(t('dash.a11yAccuracy'))}">${bars}</svg>`;
 }
 
 // ---------------------------------------------------------------------------
 //  Biçimlendirme yardımcıları
 // ---------------------------------------------------------------------------
 
-const number = (value) => Number(value ?? 0).toLocaleString('tr-TR');
+const number = (value) => Number(value ?? 0).toLocaleString(locale());
 
 function trim(text, max) {
   const value = String(text ?? '');
@@ -351,11 +347,11 @@ function trim(text, max) {
 }
 
 function shortDate(iso) {
-  return new Date(iso).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' });
+  return new Date(iso).toLocaleDateString(locale(), { day: '2-digit', month: 'short' });
 }
 
 function dateTime(iso) {
-  return new Date(iso).toLocaleString('tr-TR', {
+  return new Date(iso).toLocaleString(locale(), {
     day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
   });
 }
@@ -363,7 +359,7 @@ function dateTime(iso) {
 /** "3 saat sonra" / "2 gün önce". */
 function relativeTime(iso) {
   const diffMinutes = Math.round((new Date(iso).getTime() - Date.now()) / 60000);
-  const formatter = new Intl.RelativeTimeFormat('tr-TR', { numeric: 'auto' });
+  const formatter = new Intl.RelativeTimeFormat(locale(), { numeric: 'auto' });
 
   if (Math.abs(diffMinutes) < 60) return formatter.format(diffMinutes, 'minute');
 
@@ -389,23 +385,28 @@ async function loadDashboard() {
   const summary = data.summary;
 
   const tiles = [
-    ['👥 Kullanıcı', number(summary.totalUsers), `${summary.activeUsers} aktif` +
-      (summary.lockedUsers > 0 ? ` · ${summary.lockedUsers} kilitli` : '')],
-    ['➕ Yeni kayıt', number(summary.newUsersInWindow), `son ${data.windowDays} gün`],
-    ['🚩 Yarışma', number(summary.finishedCompetitions), `son ${data.windowDays} günde ${summary.competitionsInWindow}`],
-    ['⚡ Canlı oda', number(summary.liveRooms), 'bekleyen + oynanan'],
-    ['❓ Soru', number(summary.activeQuestions), `${summary.totalQuestions} kayıt · ${summary.activeCategories} kategori`],
-    ['✅ Doğruluk', `%${summary.overallAccuracy}`, `${number(summary.totalAnswers)} cevap üzerinden`]
+    [t('dash.users'), number(summary.totalUsers), summary.lockedUsers > 0
+      ? t('dash.usersFootLocked', { active: summary.activeUsers, locked: summary.lockedUsers })
+      : t('dash.usersFoot', { active: summary.activeUsers })],
+    [t('dash.newUsers'), number(summary.newUsersInWindow),
+      t('dash.newUsersFoot', { days: data.windowDays })],
+    [t('dash.games'), number(summary.finishedCompetitions),
+      t('dash.gamesFoot', { days: data.windowDays, count: summary.competitionsInWindow })],
+    [t('dash.liveRooms'), number(summary.liveRooms), t('dash.liveRoomsFoot')],
+    [t('dash.questions'), number(summary.activeQuestions),
+      t('dash.questionsFoot', { total: summary.totalQuestions, categories: summary.activeCategories })],
+    [t('dash.accuracy'), percent(summary.overallAccuracy),
+      t('dash.accuracyFoot', { count: number(summary.totalAnswers) })]
   ];
 
   $('adminPanel').innerHTML = `
     <div class="admin-toolbar">
-      <div class="segmented" role="group" aria-label="Zaman aralığı">
+      <div class="segmented" role="group" aria-label="${escapeHtml(t('admin.timeRange'))}">
         ${[7, 14, 30].map((days) => `
           <button class="segment ${days === adminState.windowDays ? 'active' : ''}"
-                  type="button" data-window="${days}">${days} gün</button>`).join('')}
+                  type="button" data-window="${days}">${t('dash.days', { count: days })}</button>`).join('')}
       </div>
-      <button id="dashboardRefresh" class="btn btn-ghost btn-sm" type="button">Yenile</button>
+      <button id="dashboardRefresh" class="btn btn-ghost btn-sm" type="button">${t('common.refresh')}</button>
     </div>
 
     <div class="kpi-grid">
@@ -419,27 +420,28 @@ async function loadDashboard() {
 
     <div class="card">
       <div class="section-head-inline">
-        <h3>Günlük etkinlik</h3>
-        <small class="muted">tamamlanan yarışma / benzersiz oyuncu</small>
+        <h3>${t('dash.activity')}</h3>
+        <small class="muted">${t('dash.activityNote')}</small>
       </div>
       ${activityChart(data.dailyActivity)}
     </div>
 
     <div class="admin-columns">
       <div class="card">
-        <h3>Kategori doğruluk oranı</h3>
+        <h3>${t('dash.categoryAccuracy')}</h3>
         ${accuracyChart(data.categories)}
       </div>
 
       <div class="card">
-        <h3>Kategori dağılımı</h3>
+        <h3>${t('dash.categoryBreakdown')}</h3>
         <table class="table">
-          <thead><tr><th>Kategori</th><th>Soru</th><th>Oyun</th></tr></thead>
+          <thead><tr><th>${t('dash.colCategory')}</th><th>${t('dash.colQuestions')}</th>
+                     <th>${t('dash.colGames')}</th></tr></thead>
           <tbody>
             ${data.categories.map((category) => `
               <tr>
                 <td>${escapeHtml(category.icon || '')} ${escapeHtml(category.name)}
-                  ${category.isActive ? '' : '<span class="chip chip-muted">Kapalı</span>'}</td>
+                  ${category.isActive ? '' : `<span class="chip chip-muted">${t('common.closed')}</span>`}</td>
                 <td>${category.questionCount}</td>
                 <td>${category.competitionCount}</td>
               </tr>`).join('')}
@@ -449,13 +451,13 @@ async function loadDashboard() {
     </div>
 
     <div class="admin-columns">
-      ${questionStatCard('En çok yanılınan sorular', data.hardestQuestions,
-        `en az ${DASHBOARD_MIN_TIMES_ASKED} kez soruldu`)}
-      ${questionStatCard('En kolay sorular', data.easiestQuestions, 'havuzu dengelemek için')}
+      ${questionStatCard(t('dash.hardest'), data.hardestQuestions,
+        t('dash.hardestNote', { count: DASHBOARD_MIN_TIMES_ASKED }))}
+      ${questionStatCard(t('dash.easiest'), data.easiestQuestions, t('dash.easiestNote'))}
     </div>
 
     <p class="dashboard-foot">
-      Veri ${escapeHtml(dateTime(data.generatedAtUtc))} itibarıyla (kısa süreli önbelleklenir).
+      ${escapeHtml(t('dash.generatedAt', { time: dateTime(data.generatedAtUtc) }))}
     </p>`;
 
   $('adminPanel').querySelectorAll('[data-window]').forEach((button) => {
@@ -470,19 +472,19 @@ async function loadDashboard() {
 
 function questionStatCard(title, questions, note) {
   const body = questions.length === 0
-    ? '<div class="empty">Yeterli veri toplanmadı.</div>'
+    ? `<div class="empty">${t('dash.notEnoughData')}</div>`
     : `<ul class="stat-list">
         ${questions.map((question) => `
           <li>
             <div class="stat-list-main">
               <span class="stat-list-title" title="${escapeHtml(question.text)}">${escapeHtml(trim(question.text, 58))}</span>
               <small class="muted">${escapeHtml(question.categoryName)} ·
-                ${escapeHtml(DIFFICULTY_LABELS[question.difficulty] ?? question.difficulty)} ·
-                ${question.timesAsked} kez</small>
+                ${escapeHtml(difficultyLabel(question.difficulty))} ·
+                ${escapeHtml(t('q.timesAsked', { count: question.timesAsked }))}</small>
             </div>
             <div class="rate">
               <div class="rate-track"><div class="rate-fill" style="width:${question.successRate}%"></div></div>
-              <span class="rate-value">%${question.successRate}</span>
+              <span class="rate-value">${percent(question.successRate)}</span>
             </div>
           </li>`).join('')}
       </ul>`;
@@ -520,37 +522,40 @@ async function loadAdminQuestions() {
     <div class="admin-toolbar">
       <div class="toolbar-group">
         <select id="questionCategoryFilter">
-          <option value="">Tüm kategoriler</option>
+          <option value="">${t('q.allCategories')}</option>
           ${categories.map((category) => `
             <option value="${category.id}" ${category.id === adminState.questionFilter ? 'selected' : ''}>
               ${escapeHtml(category.name)}
             </option>`).join('')}
         </select>
-        <small class="muted">${questions.length} soru</small>
+        <small class="muted">${t('q.count', { count: questions.length })}</small>
       </div>
-      <button id="newQuestionButton" class="btn btn-primary btn-sm" type="button">Yeni soru</button>
+      <button id="newQuestionButton" class="btn btn-primary btn-sm" type="button">${t('q.new')}</button>
     </div>
 
     <div class="card">
-      ${questions.length === 0 ? '<div class="empty">Bu filtreye uyan soru yok.</div>' : `
+      ${questions.length === 0 ? `<div class="empty">${t('q.empty')}</div>` : `
         <table class="table">
           <thead>
-            <tr><th>Soru</th><th>Kategori</th><th>Zorluk</th><th>İstatistik</th><th></th></tr>
+            <tr><th>${t('q.colQuestion')}</th><th>${t('q.colCategory')}</th>
+                <th>${t('q.colDifficulty')}</th><th>${t('q.colStats')}</th><th></th></tr>
           </thead>
           <tbody>
             ${questions.map((question) => `
               <tr>
                 <td>
                   <span title="${escapeHtml(question.text)}">${escapeHtml(trim(question.text, 64))}</span>
-                  ${question.isActive ? '' : '<span class="chip chip-muted">Kapalı</span>'}
+                  ${question.isActive ? '' : `<span class="chip chip-muted">${t('common.closed')}</span>`}
                 </td>
                 <td>${escapeHtml(question.categoryName)}</td>
                 <td><span class="chip chip-${question.difficulty.toLowerCase()}">
-                  ${escapeHtml(DIFFICULTY_LABELS[question.difficulty] ?? question.difficulty)}</span></td>
+                  ${escapeHtml(difficultyLabel(question.difficulty))}</span></td>
                 <td class="muted">${question.timesAnsweredCorrectly}/${question.timesAsked}</td>
                 <td class="row-actions">
-                  <button class="btn btn-ghost btn-sm" type="button" data-edit="${question.id}">Düzenle</button>
-                  <button class="btn btn-ghost btn-sm danger" type="button" data-delete="${question.id}">Sil</button>
+                  <button class="btn btn-ghost btn-sm" type="button"
+                          data-edit="${question.id}">${t('common.edit')}</button>
+                  <button class="btn btn-ghost btn-sm danger" type="button"
+                          data-delete="${question.id}">${t('common.delete')}</button>
                 </td>
               </tr>`).join('')}
           </tbody>
@@ -572,12 +577,12 @@ async function loadAdminQuestions() {
   $('adminPanel').querySelectorAll('[data-delete]').forEach((button) => {
     const question = questions.find((q) => q.id === button.dataset.delete);
     button.addEventListener('click', () => confirmAction({
-      title: 'Soru silinsin mi?',
-      message: `“${trim(question.text, 70)}” kaldırılacak. Bu işlem geri alınamaz.`,
-      confirmLabel: 'Sil',
+      title: t('q.deleteTitle'),
+      message: t('q.deleteMessage', { text: trim(question.text, 70) }),
+      confirmLabel: t('common.delete'),
       onConfirm: async () => {
         await api(`/api/questions/${question.id}`, { method: 'DELETE' });
-        toast('Soru kaldırıldı.', 'success');
+        toast(t('q.deleted'), 'success');
         await showAdminTab('questions');
       }
     }));
@@ -591,10 +596,10 @@ function openQuestionDialog(question, categories) {
        { text: '', isCorrect: false }, { text: '', isCorrect: false }];
 
   openDialog({
-    title: question ? 'Soruyu düzenle' : 'Yeni soru',
+    title: question ? t('q.editTitle') : t('q.newTitle'),
     body: `
       <div class="form">
-        <label>Kategori
+        <label><span>${t('q.category')}</span>
           <select name="categoryId">
             ${categories.map((category) => `
               <option value="${category.id}" ${category.id === question?.categoryId ? 'selected' : ''}>
@@ -603,35 +608,36 @@ function openQuestionDialog(question, categories) {
           </select>
         </label>
 
-        <label>Soru metni
+        <label><span>${t('q.text')}</span>
           <textarea name="text" rows="3">${escapeHtml(question?.text ?? '')}</textarea>
         </label>
 
         <div class="grid-2">
-          <label>Zorluk
+          <label><span>${t('q.difficulty')}</span>
             <select name="difficulty">
-              ${Object.entries(DIFFICULTY_LABELS).map(([value, label]) => `
+              ${DIFFICULTY_VALUES.map((value) => `
                 <option value="${value}" ${value === (question?.difficulty ?? 'Medium') ? 'selected' : ''}>
-                  ${label}
+                  ${difficultyLabel(value)}
                 </option>`).join('')}
             </select>
           </label>
-          <label>Süre (sn)
+          <label><span>${t('q.duration')}</span>
             <input name="timeLimitSeconds" type="number" min="5" max="120"
                    value="${question?.timeLimitSeconds ?? 20}">
           </label>
         </div>
 
-        <label>Açıklama (isteğe bağlı)
+        <label><span>${t('q.explanation')}</span>
           <textarea name="explanation" rows="2">${escapeHtml(question?.explanation ?? '')}</textarea>
         </label>
 
         <div class="answers">
           <div class="section-head-inline">
-            <strong>Şıklar</strong>
-            <button id="addAnswerButton" class="btn btn-ghost btn-sm" type="button">Şık ekle</button>
+            <strong>${t('q.options')}</strong>
+            <button id="addAnswerButton" class="btn btn-ghost btn-sm"
+                    type="button">${t('q.addOption')}</button>
           </div>
-          <small class="hint">Tam olarak bir şık doğru işaretlenmelidir.</small>
+          <small class="hint">${t('q.optionsHint')}</small>
           <div id="answerRows"></div>
         </div>
 
@@ -660,11 +666,12 @@ function renderAnswerRows(answers) {
   $('answerRows').innerHTML = answers.map((answer, index) => `
     <div class="answer-row">
       <input type="radio" name="correctAnswer" value="${index}" ${answer.isCorrect ? 'checked' : ''}
-             aria-label="${index + 1}. şık doğru">
+             aria-label="${escapeHtml(t('q.optionCorrectLabel', { number: index + 1 }))}">
       <input type="text" data-answer-text="${index}" value="${escapeHtml(answer.text)}"
-             placeholder="Şık ${index + 1}">
+             placeholder="${escapeHtml(t('q.optionPlaceholder', { number: index + 1 }))}">
       <button class="btn btn-ghost btn-sm danger" type="button" data-remove-answer="${index}"
-              ${answers.length <= 2 ? 'disabled' : ''} aria-label="Şıkkı kaldır">×</button>
+              ${answers.length <= 2 ? 'disabled' : ''}
+              aria-label="${escapeHtml(t('q.removeOption'))}">×</button>
     </div>`).join('');
 
   $('answerRows').querySelectorAll('[data-remove-answer]').forEach((button) => {
@@ -694,17 +701,17 @@ async function saveQuestion(question) {
   const text = fieldValue('text');
 
   if (text.length < 10) {
-    dialogError('Soru metni en az 10 karakter olmalıdır.');
+    dialogError(t('q.textTooShort'));
     return false;
   }
 
   if (answers.some((answer) => !answer.text)) {
-    dialogError('Şık metinleri boş olamaz.');
+    dialogError(t('q.optionTextRequired'));
     return false;
   }
 
   if (answers.filter((answer) => answer.isCorrect).length !== 1) {
-    dialogError('Tam olarak bir şık doğru işaretlenmelidir.');
+    dialogError(t('q.oneCorrectRequired'));
     return false;
   }
 
@@ -726,7 +733,7 @@ async function saveQuestion(question) {
     await api('/api/questions', { method: 'POST', body: payload });
   }
 
-  toast(question ? 'Soru güncellendi.' : 'Soru eklendi.', 'success');
+  toast(question ? t('q.updated') : t('q.created'), 'success');
   adminState.categories = [];
   await showAdminTab('questions');
   return true;
@@ -742,13 +749,14 @@ async function loadAdminCategories() {
 
   $('adminPanel').innerHTML = `
     <div class="admin-toolbar">
-      <small class="muted">${categories.length} kategori</small>
-      <button id="newCategoryButton" class="btn btn-primary btn-sm" type="button">Yeni kategori</button>
+      <small class="muted">${t('cat.count', { count: categories.length })}</small>
+      <button id="newCategoryButton" class="btn btn-primary btn-sm" type="button">${t('cat.new')}</button>
     </div>
 
     <div class="card">
       <table class="table">
-        <thead><tr><th></th><th>Ad</th><th>Soru</th><th>Durum</th><th></th></tr></thead>
+        <thead><tr><th></th><th>${t('cat.colName')}</th><th>${t('cat.colQuestions')}</th>
+                   <th>${t('cat.colStatus')}</th><th></th></tr></thead>
         <tbody>
           ${categories.map((category) => `
             <tr>
@@ -756,10 +764,11 @@ async function loadAdminCategories() {
               <td><strong>${escapeHtml(category.name)}</strong><br><small class="muted">${escapeHtml(category.slug)}</small></td>
               <td>${category.questionCount}</td>
               <td>${category.isActive
-                ? '<span class="chip chip-ok">Aktif</span>'
-                : '<span class="chip chip-muted">Kapalı</span>'}</td>
+                ? `<span class="chip chip-ok">${t('common.active')}</span>`
+                : `<span class="chip chip-muted">${t('common.closed')}</span>`}</td>
               <td class="row-actions">
-                <button class="btn btn-ghost btn-sm" type="button" data-edit-category="${category.id}">Düzenle</button>
+                <button class="btn btn-ghost btn-sm" type="button"
+                        data-edit-category="${category.id}">${t('common.edit')}</button>
               </td>
             </tr>`).join('')}
         </tbody>
@@ -776,39 +785,40 @@ async function loadAdminCategories() {
 
 function openCategoryDialog(category) {
   openDialog({
-    title: category ? 'Kategoriyi düzenle' : 'Yeni kategori',
+    title: category ? t('cat.editTitle') : t('cat.newTitle'),
     body: `
       <div class="form">
-        <label>Ad
+        <label><span>${t('cat.name')}</span>
           <input name="name" type="text" maxlength="64" value="${escapeHtml(category?.name ?? '')}">
         </label>
-        <label>Açıklama
+        <label><span>${t('cat.description')}</span>
           <textarea name="description" rows="2">${escapeHtml(category?.description ?? '')}</textarea>
         </label>
         <div class="grid-2">
-          <label>İkon (emoji)
+          <label><span>${t('cat.icon')}</span>
             <input name="icon" type="text" maxlength="8" value="${escapeHtml(category?.icon ?? '')}">
           </label>
-          <label>Renk (#RRGGBB)
+          <label><span>${t('cat.color')}</span>
             <input name="colorHex" type="text" maxlength="9" value="${escapeHtml(category?.colorHex ?? '')}">
           </label>
         </div>
         ${category ? `
           <label class="check">
-            <input name="isActive" type="checkbox" ${category.isActive ? 'checked' : ''}> Aktif
+            <input name="isActive" type="checkbox" ${category.isActive ? 'checked' : ''}>
+            ${t('cat.activeLabel')}
           </label>` : ''}
         <div class="dialog-error hidden" role="alert"></div>
       </div>`,
     onConfirm: async () => {
       const name = fieldValue('name');
       if (name.length < 2) {
-        dialogError('Kategori adı en az 2 karakter olmalıdır.');
+        dialogError(t('cat.nameTooShort'));
         return false;
       }
 
       const colorHex = fieldValue('colorHex');
       if (colorHex && !/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/.test(colorHex)) {
-        dialogError('Renk #RRGGBB biçiminde olmalıdır.');
+        dialogError(t('cat.colorInvalid'));
         return false;
       }
 
@@ -829,7 +839,7 @@ function openCategoryDialog(category) {
         await api('/api/categories', { method: 'POST', body: payload });
       }
 
-      toast(category ? 'Kategori güncellendi.' : 'Kategori eklendi.', 'success');
+      toast(category ? t('cat.updated') : t('cat.created'), 'success');
       await showAdminTab('categories');
       return true;
     }
@@ -848,15 +858,16 @@ async function loadAdminEvents() {
 
   $('adminPanel').innerHTML = `
     <div class="admin-toolbar">
-      <small class="muted">${page?.totalCount ?? 0} etkinlik</small>
-      <button id="newEventButton" class="btn btn-primary btn-sm" type="button">Yeni etkinlik</button>
+      <small class="muted">${t('ev.count', { count: page?.totalCount ?? 0 })}</small>
+      <button id="newEventButton" class="btn btn-primary btn-sm" type="button">${t('ev.new')}</button>
     </div>
 
     <div class="card">
-      ${events.length === 0 ? '<div class="empty">Henüz etkinlik oluşturulmadı.</div>' : `
+      ${events.length === 0 ? `<div class="empty">${t('ev.empty')}</div>` : `
         <table class="table">
           <thead>
-            <tr><th>Etkinlik</th><th>Kategori</th><th>Başlangıç</th><th>Kayıt</th><th>Durum</th><th></th></tr>
+            <tr><th>${t('ev.colEvent')}</th><th>${t('ev.colCategory')}</th><th>${t('ev.colStart')}</th>
+                <th>${t('ev.colRegistered')}</th><th>${t('ev.colStatus')}</th><th></th></tr>
           </thead>
           <tbody>
             ${events.map((item) => `
@@ -870,12 +881,14 @@ async function loadAdminEvents() {
                     <small class="muted">${escapeHtml(relativeTime(item.scheduledStartUtc))}</small></td>
                 <td>${item.registeredCount}/${item.maxPlayers}</td>
                 <td><span class="chip chip-${item.status.toLowerCase()}">
-                  ${escapeHtml(ROOM_STATUS_LABELS[item.status] ?? item.status)}</span></td>
+                  ${escapeHtml(roomStatusLabel(item.status))}</span></td>
                 <td class="row-actions">
                   ${item.status === 'Waiting' ? `
-                    <button class="btn btn-ghost btn-sm" type="button" data-edit-event="${item.id}">Düzenle</button>
-                    <button class="btn btn-ghost btn-sm danger" type="button" data-cancel-event="${item.id}">İptal</button>
-                  ` : '<span class="muted">—</span>'}
+                    <button class="btn btn-ghost btn-sm" type="button"
+                            data-edit-event="${item.id}">${t('common.edit')}</button>
+                    <button class="btn btn-ghost btn-sm danger" type="button"
+                            data-cancel-event="${item.id}">${t('ev.cancelShort')}</button>
+                  ` : `<span class="muted">${t('common.none')}</span>`}
                 </td>
               </tr>`).join('')}
           </tbody>
@@ -894,14 +907,14 @@ async function loadAdminEvents() {
   $('adminPanel').querySelectorAll('[data-cancel-event]').forEach((button) => {
     const item = events.find((e) => e.id === button.dataset.cancelEvent);
     button.addEventListener('click', () => confirmAction({
-      title: 'Etkinlik iptal edilsin mi?',
+      title: t('ev.cancelTitle'),
       message: item.registeredCount > 0
-        ? `“${item.name}” iptal edilecek. ${item.registeredCount} kayıtlı oyuncu etkilenecek.`
-        : `“${item.name}” iptal edilecek.`,
-      confirmLabel: 'İptal et',
+        ? t('ev.cancelMessageWithPlayers', { name: item.name, count: item.registeredCount })
+        : t('ev.cancelMessage', { name: item.name }),
+      confirmLabel: t('ev.cancelAction'),
       onConfirm: async () => {
         await api(`/api/events/${item.id}/cancel`, { method: 'POST' });
-        toast('Etkinlik iptal edildi.', 'success');
+        toast(t('ev.cancelled'), 'success');
         await showAdminTab('events');
       }
     }));
@@ -912,16 +925,16 @@ function openEventDialog(item, categories) {
   const start = item ? new Date(item.scheduledStartUtc) : defaultEventStart();
 
   openDialog({
-    title: item ? 'Etkinliği düzenle' : 'Yeni etkinlik',
+    title: item ? t('ev.editTitle') : t('ev.newTitle'),
     body: `
       <div class="form">
-        <label>Ad
+        <label><span>${t('ev.name')}</span>
           <input name="name" type="text" maxlength="64" value="${escapeHtml(item?.name ?? '')}">
         </label>
-        <label>Açıklama
+        <label><span>${t('ev.description')}</span>
           <textarea name="description" rows="2">${escapeHtml(item?.description ?? '')}</textarea>
         </label>
-        <label>Kategori
+        <label><span>${t('ev.category')}</span>
           <select name="categoryId">
             ${categories.map((category) => `
               <option value="${category.id}" ${category.id === item?.categoryId ? 'selected' : ''}>
@@ -929,18 +942,18 @@ function openEventDialog(item, categories) {
               </option>`).join('')}
           </select>
         </label>
-        <label>Başlangıç (yerel saatiniz)
+        <label><span>${t('ev.startLocal')}</span>
           <input name="scheduledStart" type="datetime-local" value="${toLocalInputValue(start)}">
           <small class="hint" id="utcPreview"></small>
         </label>
         <div class="grid-3">
-          <label>Soru sayısı
+          <label><span>${t('ev.questionCount')}</span>
             <input name="questionCount" type="number" min="5" max="30" value="${item?.questionCount ?? 10}">
           </label>
-          <label>Süre (sn)
+          <label><span>${t('ev.duration')}</span>
             <input name="secondsPerQuestion" type="number" min="5" max="60" value="${item?.secondsPerQuestion ?? 20}">
           </label>
-          <label>Kontenjan
+          <label><span>${t('ev.capacity')}</span>
             <input name="maxPlayers" type="number" min="2" max="8" value="${item?.maxPlayers ?? 8}">
           </label>
         </div>
@@ -949,19 +962,19 @@ function openEventDialog(item, categories) {
     onConfirm: async () => {
       const name = fieldValue('name');
       if (name.length < 3) {
-        dialogError('Etkinlik adı en az 3 karakter olmalıdır.');
+        dialogError(t('ev.nameTooShort'));
         return false;
       }
 
       const localStart = field('scheduledStart').value;
       if (!localStart) {
-        dialogError('Başlangıç zamanı zorunludur.');
+        dialogError(t('ev.startRequired'));
         return false;
       }
 
       const scheduled = new Date(localStart);
       if (scheduled.getTime() <= Date.now()) {
-        dialogError('Başlangıç gelecekte bir zaman olmalıdır.');
+        dialogError(t('ev.startMustBeFuture'));
         return false;
       }
 
@@ -983,7 +996,7 @@ function openEventDialog(item, categories) {
         await api('/api/events', { method: 'POST', body: payload });
       }
 
-      toast(item ? 'Etkinlik güncellendi.' : 'Etkinlik oluşturuldu.', 'success');
+      toast(item ? t('ev.updated') : t('ev.created'), 'success');
       await showAdminTab('events');
       return true;
     }
@@ -993,8 +1006,8 @@ function openEventDialog(item, categories) {
   const preview = () => {
     const value = input.value ? new Date(input.value) : null;
     $('utcPreview').textContent = value && !Number.isNaN(value.getTime())
-      ? `Sunucuya ${value.toISOString().slice(0, 16).replace('T', ' ')} (UTC) olarak gönderilecek.`
-      : 'Sunucu tarafında UTC olarak saklanır.';
+      ? t('ev.utcPreview', { value: value.toISOString().slice(0, 16).replace('T', ' ') })
+      : t('ev.utcHint');
   };
 
   input.addEventListener('input', preview);
@@ -1021,16 +1034,19 @@ async function loadAdminUsers() {
 
   $('adminPanel').innerHTML = `
     <div class="admin-toolbar">
-      <input id="userSearchInput" type="search" placeholder="Ad, takma ad veya e-posta"
-             value="${escapeHtml(adminState.userSearch)}" aria-label="Kullanıcı ara">
-      <small class="muted">${page?.totalCount ?? 0} kullanıcı</small>
+      <input id="userSearchInput" type="search"
+             placeholder="${escapeHtml(t('usr.searchPlaceholder'))}"
+             value="${escapeHtml(adminState.userSearch)}"
+             aria-label="${escapeHtml(t('usr.searchLabel'))}">
+      <small class="muted">${t('usr.count', { count: page?.totalCount ?? 0 })}</small>
     </div>
 
     <div class="card">
-      ${users.length === 0 ? '<div class="empty">Aramaya uyan kullanıcı yok.</div>' : `
+      ${users.length === 0 ? `<div class="empty">${t('usr.empty')}</div>` : `
         <table class="table">
           <thead>
-            <tr><th>Kullanıcı</th><th>E-posta</th><th>Yetkiler</th><th>Durum</th><th>Son giriş</th><th></th></tr>
+            <tr><th>${t('usr.colUser')}</th><th>${t('usr.colEmail')}</th><th>${t('usr.colRoles')}</th>
+                <th>${t('usr.colStatus')}</th><th>${t('usr.colLastLogin')}</th><th></th></tr>
           </thead>
           <tbody>
             ${users.map((user) => renderUserRow(user)).join('')}
@@ -1052,7 +1068,7 @@ async function loadAdminUsers() {
     button.addEventListener('click', async () => {
       await withButtonBusy(button, async () => {
         await api(`/api/users/${user.id}/unlock`, { method: 'POST' });
-        toast(`${user.nickname} yeniden giriş deneyebilir.`, 'success');
+        toast(t('usr.unlockedToast', { name: user.nickname }), 'success');
         await showAdminTab('users');
       });
     });
@@ -1072,26 +1088,29 @@ function renderUserRow(user) {
   const self = user.id === state.user?.id;
 
   const statusChip = isLocked(user)
-    ? `<span class="chip chip-warn" title="${user.accessFailedCount} hatalı giriş">🔒 Kilitli</span>`
+    ? `<span class="chip chip-warn"
+             title="${escapeHtml(t('usr.lockTooltip', { count: user.accessFailedCount }))}">🔒 ${t('common.locked')}</span>`
     : user.isActive
-      ? '<span class="chip chip-ok">Aktif</span>'
-      : '<span class="chip chip-muted">Pasif</span>';
+      ? `<span class="chip chip-ok">${t('common.active')}</span>`
+      : `<span class="chip chip-muted">${t('common.passive')}</span>`;
 
   const roleChips = user.roles.length === 0
-    ? '<span class="muted">Oyuncu</span>'
+    ? `<span class="muted">${t('common.player')}</span>`
     : user.roles.map((role) => `
         <span class="chip ${role === ROLES.admin ? 'chip-danger' : 'chip-info'}">
-          ${escapeHtml(ROLE_LABELS[role] ?? role)}
+          ${escapeHtml(roleLabel(role))}
         </span>`).join(' ');
 
   const actions = self
-    ? '<span class="muted small">Bu sizsiniz</span>'
+    ? `<span class="muted small">${t('usr.self')}</span>`
     : `
       <button class="btn btn-ghost btn-sm" type="button" data-toggle-active="${user.id}">
-        ${user.isActive ? 'Pasifleştir' : 'Etkinleştir'}
+        ${user.isActive ? t('usr.deactivate') : t('usr.activate')}
       </button>
-      ${isLocked(user) ? `<button class="btn btn-ghost btn-sm" type="button" data-unlock="${user.id}">Kilidi aç</button>` : ''}
-      ${isAdmin() ? `<button class="btn btn-ghost btn-sm" type="button" data-claims="${user.id}">Yetkiler</button>` : ''}`;
+      ${isLocked(user) ? `<button class="btn btn-ghost btn-sm" type="button"
+                                  data-unlock="${user.id}">${t('usr.unlock')}</button>` : ''}
+      ${isAdmin() ? `<button class="btn btn-ghost btn-sm" type="button"
+                             data-claims="${user.id}">${t('usr.permissions')}</button>` : ''}`;
 
   return `
     <tr>
@@ -1100,7 +1119,8 @@ function renderUserRow(user) {
       <td class="muted small">${escapeHtml(user.email)}</td>
       <td class="chip-cell">${roleChips}</td>
       <td>${statusChip}</td>
-      <td class="muted small">${user.lastLoginAtUtc ? escapeHtml(dateTime(user.lastLoginAtUtc)) : '—'}</td>
+      <td class="muted small">${user.lastLoginAtUtc
+        ? escapeHtml(dateTime(user.lastLoginAtUtc)) : t('common.none')}</td>
       <td class="row-actions">${actions}</td>
     </tr>`;
 }
@@ -1130,14 +1150,14 @@ function confirmSetActive(user) {
   const next = !user.isActive;
 
   confirmAction({
-    title: next ? 'Hesap etkinleştirilsin mi?' : 'Hesap pasifleştirilsin mi?',
+    title: next ? t('usr.activateTitle') : t('usr.deactivateTitle'),
     message: next
-      ? `${user.nickname} yeniden giriş yapabilecek.`
-      : `${user.nickname} artık giriş yapamayacak. Mevcut oturumu, jetonu yenilenene kadar sürer.`,
-    confirmLabel: next ? 'Etkinleştir' : 'Pasifleştir',
+      ? t('usr.activateMessage', { name: user.nickname })
+      : t('usr.deactivateMessage', { name: user.nickname }),
+    confirmLabel: next ? t('usr.activate') : t('usr.deactivate'),
     onConfirm: async () => {
       await api(`/api/users/${user.id}/active?isActive=${next}`, { method: 'PATCH' });
-      toast(`${user.nickname} hesabı güncellendi.`, 'success');
+      toast(t('usr.updatedToast', { name: user.nickname }), 'success');
       await showAdminTab('users');
     }
   });
@@ -1160,20 +1180,17 @@ async function openClaimsDialog(user) {
       <input type="checkbox" data-claim="${claim.id}" data-claim-name="${escapeHtml(claim.name)}"
              ${user.roles.includes(claim.name) ? 'checked' : ''}>
       <span>
-        <strong>${escapeHtml(ROLE_LABELS[claim.name] ?? claim.name)}</strong>
+        <strong>${escapeHtml(roleLabel(claim.name))}</strong>
         <small class="muted">${escapeHtml(claim.description ?? claim.name)}</small>
       </span>
     </label>`).join('');
 
   openDialog({
-    title: `Yetkiler — ${user.nickname}`,
+    title: t('usr.claimsTitle', { name: user.nickname }),
     body: `
-      <p class="dialog-text">
-        Değişiklik anında uygulanır ve kullanıcının <strong>bir sonraki jeton
-        yenilemesinde</strong> etkili olur.
-      </p>
-      <div class="claim-list">${rows || '<div class="empty">Tanımlı yetki yok.</div>'}</div>`,
-    confirmLabel: 'Kapat',
+      <p class="dialog-text">${escapeHtml(t('usr.claimsHint'))}</p>
+      <div class="claim-list">${rows || `<div class="empty">${t('usr.noClaims')}</div>`}</div>`,
+    confirmLabel: t('common.close'),
     onConfirm: async () => {
       await showAdminTab('users');
       return true;
@@ -1189,7 +1206,10 @@ async function openClaimsDialog(user) {
 
       try {
         await api(path, { method: 'POST', body });
-        toast(`${box.dataset.claimName} ${box.checked ? 'verildi' : 'kaldırıldı'}.`, 'success');
+        const claim = roleLabel(box.dataset.claimName);
+        toast(box.checked
+          ? t('usr.claimGranted', { claim })
+          : t('usr.claimRevoked', { claim }), 'success');
       } catch (error) {
         // Sunucu reddetti (ör. yönetici kendi Admin yetkisini kaldıramaz):
         // kutuyu eski hâline döndür.
@@ -1212,10 +1232,10 @@ function pager(page, prefix) {
   return `
     <div class="pager">
       <button class="btn btn-ghost btn-sm" type="button" data-page-${prefix}="${page.page - 1}"
-              ${page.hasPrevious ? '' : 'disabled'}>Önceki</button>
+              ${page.hasPrevious ? '' : 'disabled'}>${t('common.previous')}</button>
       <span class="muted small">${page.page} / ${page.totalPages}</span>
       <button class="btn btn-ghost btn-sm" type="button" data-page-${prefix}="${page.page + 1}"
-              ${page.hasNext ? '' : 'disabled'}>Sonraki</button>
+              ${page.hasNext ? '' : 'disabled'}>${t('common.next')}</button>
     </div>`;
 }
 
@@ -1237,30 +1257,37 @@ async function loadUpcomingEvents() {
     const events = result.data ?? [];
 
     container.innerHTML = events.length === 0
-      ? '<div class="empty">Şu anda planlanmış etkinlik yok.</div>'
+      ? `<div class="empty">${t('pev.empty')}</div>`
       : events.map((item) => `
           <div class="event">
             <div class="event-info">
               <strong>${escapeHtml(item.categoryIcon || '')} ${escapeHtml(item.name)}</strong>
               ${item.description ? `<small class="muted">${escapeHtml(trim(item.description, 60))}</small>` : ''}
-              <small class="muted">${escapeHtml(shortDate(item.scheduledStartUtc))},
-                ${escapeHtml(new Date(item.scheduledStartUtc).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }))}
-                · ${item.registeredCount}/${item.maxPlayers} oyuncu · ${item.questionCount} soru</small>
+              <small class="muted">${escapeHtml(t('pev.meta', {
+                date: shortDate(item.scheduledStartUtc),
+                time: new Date(item.scheduledStartUtc)
+                  .toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' }),
+                registered: item.registeredCount,
+                capacity: item.maxPlayers,
+                questions: item.questionCount
+              }))}</small>
             </div>
             <div class="event-actions">
               ${item.isRegistered
-                ? `<span class="chip chip-ok">Kayıtlısınız</span>
-                   <button class="btn btn-ghost btn-sm" type="button" data-withdraw="${item.id}">Vazgeç</button>`
+                ? `<span class="chip chip-ok">${t('pev.registered')}</span>
+                   <button class="btn btn-ghost btn-sm" type="button"
+                           data-withdraw="${item.id}">${t('pev.withdraw')}</button>`
                 : item.canRegister
-                  ? `<button class="btn btn-primary btn-sm" type="button" data-register="${item.id}">Kaydol</button>`
-                  : '<span class="chip chip-muted">Kontenjan dolu</span>'}
+                  ? `<button class="btn btn-primary btn-sm" type="button"
+                             data-register="${item.id}">${t('pev.register')}</button>`
+                  : `<span class="chip chip-muted">${t('pev.full')}</span>`}
             </div>
           </div>`).join('');
 
     container.querySelectorAll('[data-register]').forEach((button) => {
       button.addEventListener('click', () => withButtonBusy(button, async () => {
         await api(`/api/events/${button.dataset.register}/register`, { method: 'POST' });
-        toast('Etkinliğe kaydoldunuz.', 'success');
+        toast(t('pev.registeredToast'), 'success');
         await loadUpcomingEvents();
       }));
     });
@@ -1268,13 +1295,13 @@ async function loadUpcomingEvents() {
     container.querySelectorAll('[data-withdraw]').forEach((button) => {
       button.addEventListener('click', () => withButtonBusy(button, async () => {
         await api(`/api/events/${button.dataset.withdraw}/register`, { method: 'DELETE' });
-        toast('Etkinlik kaydınız iptal edildi.', 'success');
+        toast(t('pev.withdrawnToast'), 'success');
         await loadUpcomingEvents();
       }));
     });
   } catch {
     // Etkinlikler ana sayfanın yardımcı bir bölümü; hata sayfayı durdurmamalı.
-    container.innerHTML = '<div class="empty">Etkinlikler yüklenemedi.</div>';
+    container.innerHTML = `<div class="empty">${t('pev.failed')}</div>`;
   }
 }
 

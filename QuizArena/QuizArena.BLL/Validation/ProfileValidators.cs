@@ -8,19 +8,19 @@ public sealed class UpdateProfileRequestValidator : AbstractValidator<UpdateProf
     public UpdateProfileRequestValidator()
     {
         RuleFor(x => x.FirstName)
-            .NotEmpty().WithMessage("Ad zorunludur.")
+            .NotEmpty().WithMessage(_ => ValidationMessages.FirstNameRequired)
             .MaximumLength(64);
 
         RuleFor(x => x.LastName)
-            .NotEmpty().WithMessage("Soyad zorunludur.")
+            .NotEmpty().WithMessage(_ => ValidationMessages.LastNameRequired)
             .MaximumLength(64);
 
         RuleFor(x => x.Nickname)
-            .NotEmpty().WithMessage("Takma ad zorunludur.")
-            .MinimumLength(3).WithMessage("Takma ad en az 3 karakter olmalıdır.")
+            .NotEmpty().WithMessage(_ => ValidationMessages.NicknameRequired)
+            .MinimumLength(3).WithMessage(_ => ValidationMessages.NicknameMinLength)
             .MaximumLength(32)
             .Matches("^[A-Za-z0-9ÇĞİÖŞÜçğıöşü_.-]+$")
-            .WithMessage("Takma ad yalnızca harf, rakam, alt çizgi, nokta ve tire içerebilir.");
+            .WithMessage(_ => ValidationMessages.NicknameCharset);
 
         RuleFor(x => x.City)
             .MaximumLength(64)
@@ -32,12 +32,12 @@ public sealed class UpdateProfileRequestValidator : AbstractValidator<UpdateProf
             // olmadan "javascript:" veya "data:text/html" gibi bir değer
             // saklanabilir; bu, profili görüntüleyen herkeste betik çalıştırma
             // (saklı XSS) anlamına gelir.
-            .Must(BeHttpUrl).WithMessage("Avatar adresi http veya https ile başlamalıdır.")
+            .Must(BeHttpUrl).WithMessage(_ => ValidationMessages.AvatarUrlScheme)
             .When(x => !string.IsNullOrWhiteSpace(x.AvatarUrl));
 
         RuleFor(x => x.BirthDate)
             .Must(date => date!.Value < DateOnly.FromDateTime(DateTime.UtcNow))
-            .WithMessage("Doğum tarihi gelecekte olamaz.")
+            .WithMessage(_ => ValidationMessages.BirthDateNotFuture)
             .When(x => x.BirthDate is not null);
     }
 

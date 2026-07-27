@@ -99,7 +99,7 @@ public sealed class RoomManager : IRoomService
         if (availableQuestions < request.QuestionCount)
         {
             throw new BusinessException(
-                $"{Messages.NotEnoughQuestions} (Bu kategoride {availableQuestions} uygun soru var.)");
+                Messages.NotEnoughQuestionsIn(availableQuestions));
         }
 
         // Aynı kullanıcının paralel odalarda olması skor/istatistik tutarlılığını

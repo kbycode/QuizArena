@@ -28,38 +28,38 @@ internal static class AnswerListRules
     internal static IRuleBuilderOptions<T, IReadOnlyList<SaveAnswerRequest>> ValidAnswerSet<T>(
         this IRuleBuilder<T, IReadOnlyList<SaveAnswerRequest>> rule) =>
         rule
-            .NotNull().WithMessage("Şıklar zorunludur.")
+            .NotNull().WithMessage(_ => ValidationMessages.AnswersRequired)
             .Must(answers => answers.Count is >= MinOptions and <= MaxOptions)
-            .WithMessage($"Soruda en az {MinOptions}, en fazla {MaxOptions} şık olmalıdır.")
+            .WithMessage(_ => ValidationMessages.AnswerCountRange(MinOptions, MaxOptions))
             .Must(answers => answers.Count(a => a.IsCorrect) == 1)
-            .WithMessage("Soruda tam olarak bir doğru şık bulunmalıdır.")
+            .WithMessage(_ => ValidationMessages.ExactlyOneCorrectAnswer)
             .Must(answers => answers.All(a => !string.IsNullOrWhiteSpace(a.Text)))
-            .WithMessage("Şık metinleri boş olamaz.")
+            .WithMessage(_ => ValidationMessages.AnswerTextRequired)
             .Must(answers => answers.All(a => a.Text.Length <= MaxAnswerTextLength))
-            .WithMessage($"Şık metni en fazla {MaxAnswerTextLength} karakter olabilir.")
+            .WithMessage(_ => ValidationMessages.AnswerTextMaxLength(MaxAnswerTextLength))
             // Aynı metinli iki şık, oyuncu için çözümsüz bir soru üretir.
             .Must(answers => answers
                 .Select(a => a.Text.Trim())
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .Count() == answers.Count)
-            .WithMessage("Şık metinleri birbirinden farklı olmalıdır.");
+            .WithMessage(_ => ValidationMessages.AnswersMustBeDistinct);
 }
 
 public sealed class CreateQuestionRequestValidator : AbstractValidator<CreateQuestionRequest>
 {
     public CreateQuestionRequestValidator()
     {
-        RuleFor(x => x.CategoryId).NotEmpty().WithMessage("Kategori seçilmelidir.");
+        RuleFor(x => x.CategoryId).NotEmpty().WithMessage(_ => ValidationMessages.CategoryRequired);
 
         RuleFor(x => x.Text)
-            .NotEmpty().WithMessage("Soru metni zorunludur.")
-            .MinimumLength(10).WithMessage("Soru metni en az 10 karakter olmalıdır.")
+            .NotEmpty().WithMessage(_ => ValidationMessages.QuestionTextRequired)
+            .MinimumLength(10).WithMessage(_ => ValidationMessages.QuestionTextMinLength)
             .MaximumLength(512);
 
-        RuleFor(x => x.Difficulty).IsInEnum().WithMessage("Geçersiz zorluk değeri.");
+        RuleFor(x => x.Difficulty).IsInEnum().WithMessage(_ => ValidationMessages.InvalidDifficulty);
 
         RuleFor(x => x.TimeLimitSeconds)
-            .InclusiveBetween(5, 120).WithMessage("Süre limiti 5-120 saniye arasında olmalıdır.");
+            .InclusiveBetween(5, 120).WithMessage(_ => ValidationMessages.TimeLimitRange);
 
         RuleFor(x => x.Explanation).MaximumLength(1_024).When(x => x.Explanation is not null);
 
@@ -71,17 +71,17 @@ public sealed class UpdateQuestionRequestValidator : AbstractValidator<UpdateQue
 {
     public UpdateQuestionRequestValidator()
     {
-        RuleFor(x => x.CategoryId).NotEmpty().WithMessage("Kategori seçilmelidir.");
+        RuleFor(x => x.CategoryId).NotEmpty().WithMessage(_ => ValidationMessages.CategoryRequired);
 
         RuleFor(x => x.Text)
-            .NotEmpty().WithMessage("Soru metni zorunludur.")
-            .MinimumLength(10).WithMessage("Soru metni en az 10 karakter olmalıdır.")
+            .NotEmpty().WithMessage(_ => ValidationMessages.QuestionTextRequired)
+            .MinimumLength(10).WithMessage(_ => ValidationMessages.QuestionTextMinLength)
             .MaximumLength(512);
 
-        RuleFor(x => x.Difficulty).IsInEnum().WithMessage("Geçersiz zorluk değeri.");
+        RuleFor(x => x.Difficulty).IsInEnum().WithMessage(_ => ValidationMessages.InvalidDifficulty);
 
         RuleFor(x => x.TimeLimitSeconds)
-            .InclusiveBetween(5, 120).WithMessage("Süre limiti 5-120 saniye arasında olmalıdır.");
+            .InclusiveBetween(5, 120).WithMessage(_ => ValidationMessages.TimeLimitRange);
 
         RuleFor(x => x.Explanation).MaximumLength(1_024).When(x => x.Explanation is not null);
 

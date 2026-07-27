@@ -188,7 +188,7 @@ public sealed class EventManager : IEventService
         if (request.MaxPlayers < registeredCount)
         {
             throw new BusinessException(
-                $"Kontenjan, kayıtlı oyuncu sayısının ({registeredCount}) altına düşürülemez.");
+                Messages.QuotaBelowRegistered(registeredCount));
         }
 
         room.CategoryId = category.Id;
@@ -391,7 +391,7 @@ public sealed class EventManager : IEventService
         if (available < questionCount)
         {
             throw new BusinessException(
-                $"{Messages.NotEnoughQuestions} (Bu kategoride {available} uygun soru var.)");
+                Messages.NotEnoughQuestionsIn(available));
         }
 
         return category;

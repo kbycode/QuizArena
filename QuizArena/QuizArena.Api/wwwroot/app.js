@@ -34,7 +34,13 @@ const state = {
 const STORAGE_KEY = 'quizarena.session';
 const OPTION_KEYS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
-const DIFFICULTY_LABELS = { Easy: 'Kolay', Medium: 'Orta', Hard: 'Zor' };
+// Sunucudaki JoinCodeGenerator ile aynı uzunluk; girdi alanı da bu değerle
+// sınırlanıyor (index.html: maxlength="6").
+const JOIN_CODE_LENGTH = 6;
+
+const DIFFICULTY_VALUES = ['Easy', 'Medium', 'Hard'];
+const difficultyLabel = (value) =>
+  (DIFFICULTY_VALUES.includes(value) ? t(`difficulty.${value}`) : value);
 
 // ---------------------------------------------------------------------------
 //  Kısayollar
@@ -80,7 +86,9 @@ function escapeHtml(value) {
  * oyunun ortasında dışarı atılmaz.
  */
 async function api(path, { method = 'GET', body, retryOnUnauthorized = true } = {}) {
-  const headers = { 'Content-Type': 'application/json' };
+  // Accept-Language, sunucudaki UseRequestLocalization tarafından okunuyor;
+  // doğrulama ve iş kuralı mesajları arayüzle aynı dilde döner.
+  const headers = { 'Content-Type': 'application/json', 'Accept-Language': getLanguage() };
   if (state.accessToken) {
     headers.Authorization = `Bearer ${state.accessToken}`;
   }
@@ -99,11 +107,7 @@ async function api(path, { method = 'GET', body, retryOnUnauthorized = true } = 
     //
     // Tarayıcının ham mesajı ("Failed to fetch" / "NetworkError") kullanıcıya
     // hiçbir şey anlatmaz; anlaşılır bir metne çeviriyoruz.
-    throw new Error(
-      'Sunucuya ulaşılamıyor. API çalışmıyor olabilir veya internet bağlantınız koptu. ' +
-      'Lütfen birkaç saniye sonra tekrar deneyin.',
-      { cause: error }
-    );
+    throw new Error(t('api.networkError'), { cause: error });
   }
 
   if (response.status === 401 && retryOnUnauthorized && state.refreshToken) {
@@ -120,7 +124,10 @@ async function api(path, { method = 'GET', body, retryOnUnauthorized = true } = 
     // Sunucu RFC 7807 ProblemDetails döner. Alan bazlı doğrulama hataları
     // 'errors' içinde gelir; kullanıcıya ilkini gösteriyoruz.
     const fieldError = payload?.errors && Object.values(payload.errors)[0]?.[0];
-    throw new Error(fieldError || payload?.detail || payload?.title || `İstek başarısız (${response.status})`);
+    throw new Error(
+      fieldError || payload?.detail || payload?.title ||
+      t('api.requestFailed', { status: response.status })
+    );
   }
 
   return payload;
@@ -251,7 +258,7 @@ $('loginForm').addEventListener('submit', async (event) => {
       body: { email: form.get('email'), password: form.get('password') }
     });
     applySession(result.data);
-    toast(result.message || 'Giriş başarılı.', 'success');
+    toast(result.message || t('auth.loginSuccess'), 'success');
     await enterApp();
   });
 });
@@ -272,7 +279,7 @@ $('registerForm').addEventListener('submit', async (event) => {
       }
     });
     applySession(result.data);
-    toast(result.message || 'Kaydınız oluşturuldu.', 'success');
+    toast(result.message || t('auth.registerSuccess'), 'success');
     await enterApp();
   });
 });
@@ -284,7 +291,7 @@ $('logoutButton').addEventListener('click', async () => {
     // Çıkış her durumda yerel olarak tamamlanır.
   }
   clearSession();
-  toast('Çıkış yapıldı.');
+  toast(t('auth.loggedOut'));
 });
 
 /** Butonu istek süresince kilitler ve hatayı bildirime çevirir. */
@@ -292,7 +299,7 @@ async function withButtonBusy(button, action) {
   const original = button?.textContent;
   if (button) {
     button.disabled = true;
-    button.textContent = 'Bekleyin…';
+    button.textContent = t('common.waiting');
   }
 
   try {
@@ -337,7 +344,7 @@ async function loadCategories() {
     const categories = result.data ?? [];
 
     if (categories.length === 0) {
-      grid.innerHTML = '<div class="empty">Henüz kategori eklenmemiş.</div>';
+      grid.innerHTML = `<div class="empty">${t('home.noCategories')}</div>`;
       return;
     }
 
@@ -351,7 +358,8 @@ async function loadCategories() {
                 ${enough ? '' : 'disabled'}>
           <span class="category-icon">${escapeHtml(category.icon || '❓')}</span>
           <span class="category-name">${escapeHtml(category.name)}</span>
-          <span class="category-meta">${category.questionCount} soru${enough ? '' : ' — yetersiz'}</span>
+          <span class="category-meta">${category.questionCount} ${t('common.questionsShort')}${
+            enough ? '' : ` — ${t('home.notEnoughQuestions')}`}</span>
         </button>`;
     }).join('');
 
@@ -359,7 +367,8 @@ async function loadCategories() {
       button.addEventListener('click', () => selectCategory(button));
     });
   } catch (error) {
-    grid.innerHTML = `<div class="empty">Kategoriler yüklenemedi: ${escapeHtml(error.message)}</div>`;
+    grid.innerHTML =
+      `<div class="empty">${t('home.categoriesFailed', { error: escapeHtml(error.message) })}</div>`;
   }
 }
 
@@ -393,10 +402,10 @@ async function loadLeaderboard() {
     const entries = result.data ?? [];
 
     list.innerHTML = entries.length === 0
-      ? '<div class="empty">Henüz kimse oynamadı. İlk sen ol!</div>'
+      ? `<div class="empty">${t('home.noLeaderboard')}</div>`
       : entries.map((entry) => renderLeaderboardRow(entry)).join('');
   } catch {
-    list.innerHTML = '<div class="empty">Sıralama yüklenemedi.</div>';
+    list.innerHTML = `<div class="empty">${t('home.leaderboardFailed')}</div>`;
   }
 }
 
@@ -408,7 +417,7 @@ function renderLeaderboardRow(entry) {
     <li class="${isMe}">
       <span class="rank ${medal}">${entry.rank}</span>
       <span class="name">${escapeHtml(entry.nickname)}</span>
-      <span class="points">${entry.totalScore.toLocaleString('tr-TR')}</span>
+      <span class="points">${entry.totalScore.toLocaleString(locale())}</span>
     </li>`;
 }
 
@@ -417,28 +426,31 @@ async function loadMyStatistics() {
     const result = await api('/api/users/me/statistics');
     const stats = result.data;
 
-    $('userScore').textContent = `${stats.totalScore.toLocaleString('tr-TR')} puan`;
+    $('userScore').textContent =
+      `${stats.totalScore.toLocaleString(locale())} ${t('common.points')}`;
 
     $('myStats').innerHTML = [
-      ['Yarışma', stats.totalCompetitions],
-      ['Puan', stats.totalScore.toLocaleString('tr-TR')],
-      ['Doğruluk', `%${stats.accuracyPercentage}`],
-      ['En iyi seri', stats.bestStreak],
-      ['Birincilik', stats.winCount],
-      ['Ort. süre', stats.averageAnswerMilliseconds ? `${(stats.averageAnswerMilliseconds / 1000).toFixed(1)} sn` : '—']
+      [t('stats.competitions'), stats.totalCompetitions],
+      [t('stats.score'), stats.totalScore.toLocaleString(locale())],
+      [t('stats.accuracy'), percent(stats.accuracyPercentage)],
+      [t('stats.bestStreak'), stats.bestStreak],
+      [t('stats.wins'), stats.winCount],
+      [t('stats.averageTime'), stats.averageAnswerMilliseconds
+        ? `${(stats.averageAnswerMilliseconds / 1000).toFixed(1)} ${t('result.secondsShort')}`
+        : t('common.none')]
     ].map(([label, value]) => `
       <div class="stat"><span class="stat-value">${value}</span><span class="stat-label">${label}</span></div>
     `).join('');
 
     $('myAchievements').innerHTML = stats.achievements.length === 0
-      ? '<div class="empty">Henüz rozet kazanmadın.</div>'
+      ? `<div class="empty">${t('home.noBadges')}</div>`
       : stats.achievements.map((achievement) => `
           <div class="badge" title="${escapeHtml(achievement.description)}">
             <span class="badge-icon">${escapeHtml(achievement.icon)}</span>
             ${escapeHtml(achievement.name)}
           </div>`).join('');
   } catch {
-    $('myStats').innerHTML = '<div class="empty">İstatistikler yüklenemedi.</div>';
+    $('myStats').innerHTML = `<div class="empty">${t('home.statsFailed')}</div>`;
   }
 }
 
@@ -450,18 +462,19 @@ async function loadOpenRooms() {
     const rooms = result.data?.items ?? [];
 
     container.innerHTML = rooms.length === 0
-      ? '<div class="empty">Şu anda açık oda yok.</div>'
+      ? `<div class="empty">${t('home.noOpenRooms')}</div>`
       : rooms.map((room) => `
           <div class="room">
             <div class="room-info">
               <strong>${escapeHtml(room.categoryIcon || '')} ${escapeHtml(room.name)}</strong>
-              <small>${escapeHtml(room.hostNickname)} · ${room.currentPlayerCount}/${room.maxPlayers} oyuncu ·
-                     ${room.questionCount} soru</small>
+              <small>${escapeHtml(room.hostNickname)} ·
+                     ${room.currentPlayerCount}/${room.maxPlayers} ${t('common.playersShort')} ·
+                     ${room.questionCount} ${t('common.questionsShort')}</small>
             </div>
             <span class="chip">${escapeHtml(room.categoryName)}</span>
           </div>`).join('');
   } catch {
-    container.innerHTML = '<div class="empty">Odalar yüklenemedi.</div>';
+    container.innerHTML = `<div class="empty">${t('home.roomsFailed')}</div>`;
   }
 }
 
@@ -472,7 +485,7 @@ $('refreshRoomsButton').addEventListener('click', loadOpenRooms);
 // ---------------------------------------------------------------------------
 $('startGameButton').addEventListener('click', async (event) => {
   if (!state.selectedCategory) {
-    toast('Önce bir kategori seç.', 'error');
+    toast(t('home.pickCategoryFirst'), 'error');
     return;
   }
 
@@ -505,8 +518,8 @@ $('startGameButton').addEventListener('click', async (event) => {
 $('joinRoomButton').addEventListener('click', async (event) => {
   const code = $('joinCodeInput').value.trim().toUpperCase();
 
-  if (code.length !== 6) {
-    toast('Katılım kodu 6 karakter olmalı.', 'error');
+  if (code.length !== JOIN_CODE_LENGTH) {
+    toast(t('home.joinCodeLength', { length: JOIN_CODE_LENGTH }), 'error');
     return;
   }
 
@@ -534,7 +547,7 @@ function renderLobby() {
   $('lobbyParticipants').innerHTML = room.participants.map((participant) => `
     <div class="participant">
       <span>${escapeHtml(participant.nickname)}${participant.role === 'Host' ? ' 👑' : ''}</span>
-      <span class="chip">${participant.role === 'Host' ? 'Kurucu' : 'Oyuncu'}</span>
+      <span class="chip">${participant.role === 'Host' ? t('lobby.host') : t('common.player')}</span>
     </div>`).join('');
 
   // "Başlat" ve "İptal" yalnızca kurucuya gösterilir. Sunucu da bunu
@@ -638,14 +651,16 @@ async function loadNextQuestion() {
 function renderQuestion() {
   const question = state.question;
 
-  $('questionProgress').textContent = `Soru ${question.order} / ${question.totalQuestions}`;
-  $('questionDifficulty').textContent = DIFFICULTY_LABELS[question.difficulty] ?? question.difficulty;
-  $('gameScore').textContent = `${question.currentScore.toLocaleString('tr-TR')} puan`;
+  $('questionProgress').textContent =
+    t('game.questionProgress', { order: question.order, total: question.totalQuestions });
+  $('questionDifficulty').textContent = difficultyLabel(question.difficulty);
+  $('gameScore').textContent =
+    `${question.currentScore.toLocaleString(locale())} ${t('common.points')}`;
   $('questionText').textContent = question.text;
 
   const streak = $('streakBadge');
   streak.classList.toggle('hidden', question.currentStreak < 2);
-  streak.textContent = `🔥 ${question.currentStreak} seri`;
+  streak.textContent = t('game.streakBadge', { count: question.currentStreak });
 
   $('answerFeedback').classList.add('hidden');
 
@@ -681,7 +696,8 @@ function startTimer(closesAt) {
 
     bar.style.width = `${ratio * 100}%`;
     bar.classList.toggle('critical', ratio < 0.25);
-    $('timerText').textContent = `${Math.max(0, Math.ceil(remainingMs / 1000))} saniye`;
+    $('timerText').textContent =
+      t('game.timeLeft', { seconds: Math.max(0, Math.ceil(remainingMs / 1000)) });
 
     if (remainingMs <= 0) {
       stopTimer();
@@ -747,25 +763,27 @@ function renderAnswerFeedback(result, selectedAnswerId, buttons) {
     }
   });
 
-  $('gameScore').textContent = `${result.totalScore.toLocaleString('tr-TR')} puan`;
+  $('gameScore').textContent =
+    `${result.totalScore.toLocaleString(locale())} ${t('common.points')}`;
 
   const feedback = $('answerFeedback');
   feedback.className = `feedback ${result.isCorrect ? 'correct' : 'wrong'}`;
 
   const heading = result.isCorrect
-    ? `✅ Doğru! +${result.pointsBreakdown.total} puan`
+    ? t('game.correct', { points: result.pointsBreakdown.total })
     : result.isTimedOut
-      ? '⏱ Süre doldu'
-      : '❌ Yanlış';
+      ? t('game.timedOut')
+      : t('game.wrong');
 
   const breakdown = result.isCorrect
     ? `<div class="points">
-         <span>Taban: ${result.pointsBreakdown.basePoints}</span>
-         <span>Hız: +${result.pointsBreakdown.speedBonus}</span>
-         <span>Seri: +${result.pointsBreakdown.streakBonus}</span>
-         <span>${(result.elapsedMilliseconds / 1000).toFixed(1)} sn</span>
+         <span>${t('game.base')}: ${result.pointsBreakdown.basePoints}</span>
+         <span>${t('game.speed')}: +${result.pointsBreakdown.speedBonus}</span>
+         <span>${t('game.streak')}: +${result.pointsBreakdown.streakBonus}</span>
+         <span>${(result.elapsedMilliseconds / 1000).toFixed(1)} ${t('result.secondsShort')}</span>
        </div>`
-    : `<div class="points"><span>Doğru cevap: ${escapeHtml(result.correctAnswerText)}</span></div>`;
+    : `<div class="points"><span>${
+        t('game.correctAnswerWas', { answer: escapeHtml(result.correctAnswerText) })}</span></div>`;
 
   const explanation = result.explanation
     ? `<div class="explanation">💡 ${escapeHtml(result.explanation)}</div>`
@@ -785,7 +803,7 @@ async function pollLiveScoreboard() {
       <li class="${participant.userId === state.user?.id ? 'me' : ''}">
         <span class="rank">${index + 1}</span>
         <span class="name">${escapeHtml(participant.nickname)}</span>
-        <span class="points">${participant.totalScore.toLocaleString('tr-TR')}</span>
+        <span class="points">${participant.totalScore.toLocaleString(locale())}</span>
       </li>`).join('');
   } catch {
     // Canlı skor kritik değil; sessizce geçiyoruz.
@@ -809,7 +827,7 @@ async function showResult(competitionId) {
     }
 
     if (!id) {
-      toast('Yarışma sonucu bulunamadı.', 'error');
+      toast(t('result.notFound'), 'error');
       await enterApp();
       return;
     }
@@ -828,17 +846,18 @@ function renderResult(summary) {
 
   $('resultEmoji').textContent = accuracy >= 90 ? '🏆' : accuracy >= 60 ? '🎉' : accuracy >= 30 ? '👍' : '📚';
   $('resultTitle').textContent = summary.rank
-    ? `${summary.rank}. oldun!`
-    : 'Yarışma tamamlandı';
-  $('resultScore').textContent = `${summary.totalScore.toLocaleString('tr-TR')} puan`;
+    ? t('result.rank', { rank: summary.rank })
+    : t('result.title');
+  $('resultScore').textContent =
+    `${summary.totalScore.toLocaleString(locale())} ${t('common.points')}`;
 
   $('resultStats').innerHTML = [
-    ['Doğru', `${summary.correctCount}/${summary.questionCount}`],
-    ['Doğruluk', `%${accuracy}`],
-    ['En uzun seri', summary.longestStreak],
-    ['Süre', `${summary.durationSeconds} sn`],
-    ['Yanlış', summary.wrongCount],
-    ['Süre doldu', summary.timedOutCount]
+    [t('result.correct'), `${summary.correctCount}/${summary.questionCount}`],
+    [t('stats.accuracy'), percent(accuracy)],
+    [t('result.longestStreak'), summary.longestStreak],
+    [t('result.duration'), `${summary.durationSeconds} ${t('result.secondsShort')}`],
+    [t('result.wrong'), summary.wrongCount],
+    [t('result.timedOut'), summary.timedOutCount]
   ].map(([label, value]) => `
     <div class="stat"><span class="stat-value">${value}</span><span class="stat-label">${label}</span></div>
   `).join('');
@@ -846,7 +865,7 @@ function renderResult(summary) {
   $('newAchievements').innerHTML = summary.newAchievements.length === 0
     ? ''
     : `<div style="width:100%;text-align:center;color:var(--text-muted);font-size:12px;margin-bottom:6px">
-         YENİ ROZETLER
+         ${t('result.newBadges')}
        </div>` +
       summary.newAchievements.map((achievement) => `
         <div class="badge new" title="${escapeHtml(achievement.description)}">
@@ -861,7 +880,7 @@ function renderResult(summary) {
       <li class="${entry.userId === state.user?.id ? 'me' : ''}">
         <span class="rank ${['gold', 'silver', 'bronze'][entry.rank - 1] ?? ''}">${entry.rank}</span>
         <span class="name">${escapeHtml(entry.nickname)}</span>
-        <span class="points">${entry.totalScore.toLocaleString('tr-TR')}</span>
+        <span class="points">${entry.totalScore.toLocaleString(locale())}</span>
       </li>`).join('');
   }
 }
@@ -914,6 +933,65 @@ document.addEventListener('keydown', (event) => {
 });
 
 // ---------------------------------------------------------------------------
+//  Dil
+// ---------------------------------------------------------------------------
+
+/**
+ * Sayı içeren seçenek etiketlerini yazar ("10 soru" / "10 questions").
+ *
+ * Seçenekler HTML'de duruyor; yalnızca metinleri değiştiriliyor. Yeniden
+ * üretmek, kategoriye göre kapatılan seçenekleri (bkz. `selectCategory`) ve
+ * mevcut seçimi sıfırlardı.
+ */
+function applyOptionLabels() {
+  Array.from($('questionCount').options).forEach((option) => {
+    option.textContent = t('home.questionOption', { count: option.value });
+  });
+
+  Array.from($('secondsPerQuestion').options).forEach((option) => {
+    option.textContent = t('home.secondsOption', { count: option.value });
+  });
+}
+
+/**
+ * Dil değiştiğinde açık olan ekranı yeniden çizer.
+ *
+ * Sabit metinleri i18n.js zaten `applyStaticText()` ile güncelliyor; burada
+ * yalnızca JavaScript'in ürettiği listeler yenileniyor. Sunucudan gelen
+ * mesajlar da yeni `Accept-Language` başlığıyla döneceği için liste
+ * içerikleri istekle birlikte tazeleniyor.
+ */
+async function reloadCurrentScreen() {
+  if (!$('homeScreen').classList.contains('hidden')) {
+    await Promise.all([
+      loadCategories(),
+      loadLeaderboard(),
+      loadMyStatistics(),
+      loadOpenRooms(),
+      loadUpcomingEvents()
+    ]);
+    return;
+  }
+
+  if (!$('lobbyScreen').classList.contains('hidden')) {
+    renderLobby();
+  } else if (!$('gameScreen').classList.contains('hidden') && state.question && !state.answering) {
+    // Cevap gönderilirken yeniden çizmiyoruz: geri bildirim kutusu silinir ve
+    // kilitli şıklar tekrar açılırdı.
+    renderQuestion();
+  } else if (!$('adminScreen').classList.contains('hidden')) {
+    await openAdmin();
+  }
+}
+
+document.addEventListener(LANGUAGE_CHANGED_EVENT, () => {
+  // Dil kutunun kendisinden değil de başka bir yerden değiştirilmiş olabilir.
+  $('languageSelect').value = getLanguage();
+  applyOptionLabels();
+  reloadCurrentScreen().catch((error) => console.error(error));
+});
+
+// ---------------------------------------------------------------------------
 //  Başlangıç
 //
 //  DOMContentLoaded bekleniyor çünkü bu dosya, kendisinden SONRA yüklenen
@@ -924,6 +1002,13 @@ document.addEventListener('keydown', (event) => {
 //  tetiklenmeden önce ayrıştırılıp çalıştırılır.
 // ---------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', async () => {
+  // Sabit metinler cihaz dilinde (ya da kullanıcının önceki seçiminde) yazılır.
+  const languageSelect = $('languageSelect');
+  languageSelect.value = getLanguage();
+  languageSelect.addEventListener('change', () => setLanguage(languageSelect.value));
+  applyStaticText();
+  applyOptionLabels();
+
   if (restoreSession()) {
     try {
       await enterApp();

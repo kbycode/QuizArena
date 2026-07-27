@@ -10,39 +10,39 @@ public sealed class CreateRoomRequestValidator : AbstractValidator<CreateRoomReq
 {
     public CreateRoomRequestValidator()
     {
-        RuleFor(x => x.CategoryId).NotEmpty().WithMessage("Kategori seçilmelidir.");
+        RuleFor(x => x.CategoryId).NotEmpty().WithMessage(_ => ValidationMessages.CategoryRequired);
 
         RuleFor(x => x.Name)
-            .MaximumLength(64).WithMessage("Oda adı en fazla 64 karakter olabilir.")
+            .MaximumLength(64).WithMessage(_ => ValidationMessages.RoomNameMaxLength)
             .When(x => !string.IsNullOrWhiteSpace(x.Name));
 
-        RuleFor(x => x.Mode).IsInEnum().WithMessage("Geçersiz oyun kipi.");
+        RuleFor(x => x.Mode).IsInEnum().WithMessage(_ => ValidationMessages.InvalidRoomMode);
 
         // Sınırlar GameRules'tan okunuyor: doğrulama ile oyun motoru asla
         // farklı sınırlar uygulamaz.
         RuleFor(x => x.QuestionCount)
             .InclusiveBetween(GameRules.MinQuestionCount, GameRules.MaxQuestionCount)
-            .WithMessage($"Soru sayısı {GameRules.MinQuestionCount}-{GameRules.MaxQuestionCount} arasında olmalıdır.");
+            .WithMessage(_ => ValidationMessages.QuestionCountRange(GameRules.MinQuestionCount, GameRules.MaxQuestionCount));
 
         RuleFor(x => x.SecondsPerQuestion)
             .InclusiveBetween(GameRules.MinSecondsPerQuestion, GameRules.MaxSecondsPerQuestion)
-            .WithMessage($"Soru süresi {GameRules.MinSecondsPerQuestion}-{GameRules.MaxSecondsPerQuestion} saniye arasında olmalıdır.");
+            .WithMessage(_ => ValidationMessages.SecondsPerQuestionRange(GameRules.MinSecondsPerQuestion, GameRules.MaxSecondsPerQuestion));
 
         RuleFor(x => x.MaxPlayers)
             .InclusiveBetween(GameRules.MinPlayers, GameRules.MaxPlayers)
-            .WithMessage($"Oyuncu sayısı {GameRules.MinPlayers}-{GameRules.MaxPlayers} arasında olmalıdır.");
+            .WithMessage(_ => ValidationMessages.PlayerCountRange(GameRules.MinPlayers, GameRules.MaxPlayers));
 
         // Tek kişilik odada oyuncu sınırı 1 olmak zorunda; aksi hâlde arayüz
         // "başkalarını bekle" durumuna düşer ve oyun hiç başlamaz.
         RuleFor(x => x.MaxPlayers)
             .Equal(1)
             .When(x => x.Mode == RoomMode.Solo)
-            .WithMessage("Tek kişilik odada oyuncu sayısı 1 olmalıdır.");
+            .WithMessage(_ => ValidationMessages.SoloRoomSinglePlayer);
 
         RuleFor(x => x.MaxPlayers)
             .GreaterThanOrEqualTo(2)
             .When(x => x.Mode != RoomMode.Solo)
-            .WithMessage("Çok oyunculu odada en az 2 oyuncu olmalıdır.");
+            .WithMessage(_ => ValidationMessages.MultiplayerMinPlayers);
     }
 }
 
@@ -51,9 +51,9 @@ public sealed class JoinRoomRequestValidator : AbstractValidator<JoinRoomRequest
     public JoinRoomRequestValidator()
     {
         RuleFor(x => x.JoinCode)
-            .NotEmpty().WithMessage("Katılım kodu zorunludur.")
+            .NotEmpty().WithMessage(_ => ValidationMessages.JoinCodeRequired)
             .Length(GameRules.JoinCodeLength)
-            .WithMessage($"Katılım kodu {GameRules.JoinCodeLength} karakter olmalıdır.");
+            .WithMessage(_ => ValidationMessages.JoinCodeLength(GameRules.JoinCodeLength));
     }
 }
 
@@ -62,12 +62,12 @@ public sealed class SubmitAnswerRequestValidator : AbstractValidator<SubmitAnswe
     public SubmitAnswerRequestValidator()
     {
         RuleFor(x => x.CompetitionQuestionId)
-            .NotEmpty().WithMessage("Soru bilgisi eksik.");
+            .NotEmpty().WithMessage(_ => ValidationMessages.QuestionReferenceMissing);
 
         // SelectedAnswerId null olabilir ("pas geçiyorum"); ancak Guid.Empty
         // gönderilmesi bir istemci hatasıdır ve sessizce "pas" sayılmamalıdır.
         RuleFor(x => x.SelectedAnswerId)
-            .NotEqual(Guid.Empty).WithMessage("Geçersiz şık.")
+            .NotEqual(Guid.Empty).WithMessage(_ => ValidationMessages.InvalidAnswer)
             .When(x => x.SelectedAnswerId is not null);
     }
 }
@@ -85,31 +85,31 @@ public sealed class SaveEventRequestValidator : AbstractValidator<SaveEventReque
 {
     public SaveEventRequestValidator()
     {
-        RuleFor(x => x.CategoryId).NotEmpty().WithMessage("Kategori seçilmelidir.");
+        RuleFor(x => x.CategoryId).NotEmpty().WithMessage(_ => ValidationMessages.CategoryRequired);
 
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Etkinlik adı zorunludur.")
-            .MinimumLength(3).WithMessage("Etkinlik adı en az 3 karakter olmalıdır.")
-            .MaximumLength(64).WithMessage("Etkinlik adı en fazla 64 karakter olabilir.");
+            .NotEmpty().WithMessage(_ => ValidationMessages.EventNameRequired)
+            .MinimumLength(3).WithMessage(_ => ValidationMessages.EventNameMinLength)
+            .MaximumLength(64).WithMessage(_ => ValidationMessages.EventNameMaxLength);
 
         RuleFor(x => x.Description)
-            .MaximumLength(512).WithMessage("Açıklama en fazla 512 karakter olabilir.")
+            .MaximumLength(512).WithMessage(_ => ValidationMessages.DescriptionMaxLength)
             .When(x => !string.IsNullOrWhiteSpace(x.Description));
 
         RuleFor(x => x.ScheduledStartUtc)
-            .NotEmpty().WithMessage("Başlangıç zamanı zorunludur.");
+            .NotEmpty().WithMessage(_ => ValidationMessages.StartTimeRequired);
 
         RuleFor(x => x.QuestionCount)
             .InclusiveBetween(GameRules.MinQuestionCount, GameRules.MaxQuestionCount)
-            .WithMessage($"Soru sayısı {GameRules.MinQuestionCount}-{GameRules.MaxQuestionCount} arasında olmalıdır.");
+            .WithMessage(_ => ValidationMessages.QuestionCountRange(GameRules.MinQuestionCount, GameRules.MaxQuestionCount));
 
         RuleFor(x => x.SecondsPerQuestion)
             .InclusiveBetween(GameRules.MinSecondsPerQuestion, GameRules.MaxSecondsPerQuestion)
-            .WithMessage($"Soru süresi {GameRules.MinSecondsPerQuestion}-{GameRules.MaxSecondsPerQuestion} saniye arasında olmalıdır.");
+            .WithMessage(_ => ValidationMessages.SecondsPerQuestionRange(GameRules.MinSecondsPerQuestion, GameRules.MaxSecondsPerQuestion));
 
         // Etkinlik her zaman çok oyunculudur: alt sınır 2.
         RuleFor(x => x.MaxPlayers)
             .InclusiveBetween(2, GameRules.MaxPlayers)
-            .WithMessage($"Kontenjan 2-{GameRules.MaxPlayers} arasında olmalıdır.");
+            .WithMessage(_ => ValidationMessages.EventCapacityRange(2, GameRules.MaxPlayers));
     }
 }

@@ -64,6 +64,20 @@ body {
 .link { color: var(--text-muted); font-size: 13px; text-decoration: none; }
 .link:hover { color: var(--text); text-decoration: underline; }
 
+/* Dil seçici üst çubukta durduğu için genel `select { width: 100% }` kuralının
+   dışında tutuluyor. */
+.lang-select {
+  width: auto;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--text-muted);
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.lang-select:hover { color: var(--text); }
+
 /* --------------------------------- Yerleşim -------------------------------- */
 #app { max-width: 1180px; margin: 0 auto; padding: 26px 20px 60px; }
 .screen { animation: fade 0.25s ease; }

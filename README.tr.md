@@ -21,7 +21,7 @@ Gerçek zamanlı odalar · sunucu otoriteli puanlama · tasarımdan gelen hile d
 ---
 
 <div align="center">
-  <img src="docs/screenshots/game.png" alt="Oyun ekranı: süreli soru, zorluk etiketi, canlı puan ve dört şık" width="900">
+  <img src="docs/screenshots/game-tr.png" alt="Oyun ekranı: süreli soru, zorluk etiketi, canlı puan ve dört şık" width="900">
 </div>
 
 **Tek komutla çalışan bir bilgi yarışması.** Depoyu al, `dotnet run` de, tarayıcıda
@@ -38,10 +38,10 @@ Okumaya değer kılan üç şey:
   fonksiyon ve kendi test kümesi var — bütün sınır değerleri kapsanmış.
 
 <div align="center">
-  <img src="docs/screenshots/home.png" alt="Ana ekran: kategori seçimi, oyun ayarları, açık odalar, istatistikler ve sıralama" width="900">
+  <img src="docs/screenshots/home-tr.png" alt="Ana ekran: kategori seçimi, oyun ayarları, açık odalar, istatistikler ve sıralama" width="900">
 </div>
 
-> Ekran görüntüleri paketteki demo verisinden alındı; sayılar örnektir.
+> Ekran görüntüleri paketteki Türkçe demo verisinden alındı; sayılar örnektir.
 > Aşağıdaki her sertleştirme kararı, değiştirdiği ayarla değil **kapattığı
 > saldırıyla** birlikte belgelenmiştir; ayrıntısı
 > [güvenlik bölümünde](#güvenlik).
@@ -54,6 +54,7 @@ Okumaya değer kılan üç şey:
 - [Mimari](#mimari)
 - [Oyun akışı](#oyun-akışı)
 - [Güvenlik](#güvenlik)
+- [İki dil](#tek-pakette-iki-dil)
 - [Puanlama](#puanlama)
 - [API uçları](#api-uçları)
 - [Testler](#testler)
@@ -199,7 +200,7 @@ sekme bazında karar verilir. Bu yetkilerin hepsi iş katmanında bir kez daha
 uygulanır, yani sekmeyi gizlemek nezakettir, sınır değildir.
 
 <div align="center">
-  <img src="docs/screenshots/admin-dashboard.png" alt="Yönetim panosu: sayaç kartları ve elle çizilmiş SVG etkinlik grafiği" width="900">
+  <img src="docs/screenshots/admin-dashboard-tr.png" alt="Yönetim panosu: sayaç kartları ve elle çizilmiş SVG etkinlik grafiği" width="900">
 </div>
 
 | Sekme | Yetki | Ne yapar |
@@ -226,6 +227,32 @@ başlatıyor, kimsenin kaydolmadıklarını iptal ediyor. Etkinliği **erken
 başlatan bir uç bilinçli olarak yok**: ilan edilen saatin tüm anlamı bu.
 Kaydolmak "odada olmak" da sayılmıyor; cuma turnuvasına yazılan oyuncu bugün de
 oynayabilir.
+
+<div align="center">
+  <img src="docs/screenshots/admin-events-tr.png" alt="Yönetim etkinlikler sekmesi: planlanmış turnuvalar, başlangıç saati, kayıt ve durum" width="900">
+</div>
+
+---
+
+## Tek pakette iki dil
+
+Arayüz **Türkçe ve İngilizce** çalışıyor; ilk açılışta tarayıcıdan
+(`navigator.language`) seçiliyor, üst çubuktaki kutu bunu değiştiriyor ve seçim
+hatırlanıyor.
+
+Derleme adımı ya da ikinci bir paket yok: `wwwroot/i18n.js` iki sözlüğü de
+taşıyor, `t('anahtar')` güncel olanı çözüyor, sabit metinler `data-i18n`
+özniteliğinden doldurluyor. Dil değişince açık ekran yerinde yeniden çiziliyor.
+
+**Sunucu mesajları arayüzü takip ediyor.** Her istek `Accept-Language`
+gönderiyor, ASP.NET Core istek yerelleştirmesi `CurrentUICulture`'ı ayarlıyor ve
+doğrulama ile iş kuralı mesajları aynı dilde dönüyor — İngilizce bir ekranda
+Türkçe hata çıkmıyor. Mesaj tabloları `QuizArena.Core/Localization` altında ve
+iki tablo birbirinden ayrılırsa test derlemeyi düşürüyor.
+
+**Soru havuzu da yerelleşiyor.** `Seed:ContentLanguage` başlangıç setini
+seçiyor; İngilizce kurulum çeviri değil, kendi kategorileri, soruları ve
+rozetleriyle geliyor.
 
 ---
 
@@ -368,6 +395,7 @@ ikinci cevap, sunulmamış soruyu cevaplama, süre aşımı, başka soruya ait �
 | Refresh token ömrü | `TokenOptions__RefreshTokenExpirationDays` | 7 gün |
 | İzinli CORS kaynakları | `Cors__AllowedOrigins__0` | localhost |
 | Yönetici parolası | `Seed__AdminPassword` | yok (bkz. yukarı) |
+| Başlangıç içeriği dili | `Seed__ContentLanguage` | `tr` (İngilizce havuz için `en`) |
 | Genel hız sınırı | `RateLimiting__GeneralPermitPerMinute` | 120/dk |
 
 `TokenOptions` ayarları `ValidateOnStart()` ile doğrulanır: anahtar eksik veya

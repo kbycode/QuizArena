@@ -37,20 +37,20 @@ internal static class PasswordRules
     /// </remarks>
     internal static IRuleBuilderOptions<T, string> Email<T>(this IRuleBuilder<T, string> rule) =>
         rule
-            .NotEmpty().WithMessage("E-posta adresi zorunludur.")
-            .MaximumLength(256).WithMessage("E-posta adresi en fazla 256 karakter olabilir.")
-            .EmailAddress().WithMessage("Geçerli bir e-posta adresi giriniz.")
+            .NotEmpty().WithMessage(_ => ValidationMessages.EmailRequired)
+            .MaximumLength(256).WithMessage(_ => ValidationMessages.EmailMaxLength)
+            .EmailAddress().WithMessage(_ => ValidationMessages.EmailInvalid)
             .Must(email => !email.Any(char.IsWhiteSpace))
-            .WithMessage("E-posta adresi boşluk içeremez.");
+            .WithMessage(_ => ValidationMessages.EmailNoWhitespace);
 
     internal static IRuleBuilderOptions<T, string> Password<T>(this IRuleBuilder<T, string> rule) =>
         rule
-            .NotEmpty().WithMessage("Parola zorunludur.")
-            .MinimumLength(MinLength).WithMessage($"Parola en az {MinLength} karakter olmalıdır.")
-            .MaximumLength(MaxLength).WithMessage($"Parola en fazla {MaxLength} karakter olabilir.")
-            .Matches("[a-zçğıöşü]").WithMessage("Parola en az bir küçük harf içermelidir.")
-            .Matches("[A-ZÇĞIİÖŞÜ]").WithMessage("Parola en az bir büyük harf içermelidir.")
-            .Matches("[0-9]").WithMessage("Parola en az bir rakam içermelidir.");
+            .NotEmpty().WithMessage(_ => ValidationMessages.PasswordRequired)
+            .MinimumLength(MinLength).WithMessage(_ => ValidationMessages.PasswordMinLength(MinLength))
+            .MaximumLength(MaxLength).WithMessage(_ => ValidationMessages.PasswordMaxLength(MaxLength))
+            .Matches("[a-zçğıöşü]").WithMessage(_ => ValidationMessages.PasswordNeedsLower)
+            .Matches("[A-ZÇĞIİÖŞÜ]").WithMessage(_ => ValidationMessages.PasswordNeedsUpper)
+            .Matches("[0-9]").WithMessage(_ => ValidationMessages.PasswordNeedsDigit);
 }
 
 public sealed class RegisterRequestValidator : AbstractValidator<RegisterRequest>
@@ -62,23 +62,23 @@ public sealed class RegisterRequestValidator : AbstractValidator<RegisterRequest
         RuleFor(x => x.Password).Password();
 
         RuleFor(x => x.FirstName)
-            .NotEmpty().WithMessage("Ad zorunludur.")
-            .MaximumLength(64).WithMessage("Ad en fazla 64 karakter olabilir.");
+            .NotEmpty().WithMessage(_ => ValidationMessages.FirstNameRequired)
+            .MaximumLength(64).WithMessage(_ => ValidationMessages.FirstNameMaxLength);
 
         RuleFor(x => x.LastName)
-            .NotEmpty().WithMessage("Soyad zorunludur.")
-            .MaximumLength(64).WithMessage("Soyad en fazla 64 karakter olabilir.");
+            .NotEmpty().WithMessage(_ => ValidationMessages.LastNameRequired)
+            .MaximumLength(64).WithMessage(_ => ValidationMessages.LastNameMaxLength);
 
         RuleFor(x => x.Nickname)
-            .NotEmpty().WithMessage("Takma ad zorunludur.")
-            .MinimumLength(3).WithMessage("Takma ad en az 3 karakter olmalıdır.")
-            .MaximumLength(32).WithMessage("Takma ad en fazla 32 karakter olabilir.")
+            .NotEmpty().WithMessage(_ => ValidationMessages.NicknameRequired)
+            .MinimumLength(3).WithMessage(_ => ValidationMessages.NicknameMinLength)
+            .MaximumLength(32).WithMessage(_ => ValidationMessages.NicknameMaxLength)
             // Takma ad sıralama tablosunda ve skor ekranında gösteriliyor.
             // Karakter kümesini kısıtlamak, görünen metinle oynayarak yapılan
             // taklit (ör. görsel olarak aynı Unicode karakterler) ve
             // enjeksiyon denemelerini baştan keser.
             .Matches("^[A-Za-z0-9ÇĞİÖŞÜçğıöşü_.-]+$")
-            .WithMessage("Takma ad yalnızca harf, rakam, alt çizgi, nokta ve tire içerebilir.");
+            .WithMessage(_ => ValidationMessages.NicknameCharset);
     }
 }
 
@@ -87,7 +87,7 @@ public sealed class LoginRequestValidator : AbstractValidator<LoginRequest>
     public LoginRequestValidator()
     {
         RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("E-posta adresi zorunludur.")
+            .NotEmpty().WithMessage(_ => ValidationMessages.EmailRequired)
             .MaximumLength(256);
 
         // Girişte parola KURALLARI uygulanmaz, yalnızca boş olmadığı kontrol
@@ -95,7 +95,7 @@ public sealed class LoginRequestValidator : AbstractValidator<LoginRequest>
         // giriş yapılamaz hâle gelirdi; ayrıca hata mesajı üzerinden parola
         // politikası hakkında bilgi sızardı.
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Parola zorunludur.")
+            .NotEmpty().WithMessage(_ => ValidationMessages.PasswordRequired)
             .MaximumLength(PasswordRules.MaxLength);
     }
 }
@@ -105,7 +105,7 @@ public sealed class RefreshTokenRequestValidator : AbstractValidator<RefreshToke
     public RefreshTokenRequestValidator()
     {
         RuleFor(x => x.RefreshToken)
-            .NotEmpty().WithMessage("Yenileme jetonu zorunludur.")
+            .NotEmpty().WithMessage(_ => ValidationMessages.RefreshTokenRequired)
             .MaximumLength(512);
     }
 }
@@ -115,12 +115,12 @@ public sealed class ChangePasswordRequestValidator : AbstractValidator<ChangePas
     public ChangePasswordRequestValidator()
     {
         RuleFor(x => x.CurrentPassword)
-            .NotEmpty().WithMessage("Mevcut parola zorunludur.");
+            .NotEmpty().WithMessage(_ => ValidationMessages.CurrentPasswordRequired);
 
         RuleFor(x => x.NewPassword).Password();
 
         RuleFor(x => x.NewPassword)
             .NotEqual(x => x.CurrentPassword)
-            .WithMessage("Yeni parola mevcut parolanızla aynı olamaz.");
+            .WithMessage(_ => ValidationMessages.NewPasswordMustDiffer);
     }
 }

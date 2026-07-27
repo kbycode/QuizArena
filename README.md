@@ -21,7 +21,7 @@ Real-time rooms · server-authoritative scoring · cheat-resistant by design
 ---
 
 <div align="center">
-  <img src="docs/screenshots/game.png" alt="In-game: timed question, difficulty chip, live score and four options" width="900">
+  <img src="docs/screenshots/game-en.png" alt="In-game: timed question, difficulty chip, live score and four options" width="900">
 </div>
 
 **A trivia game you can run with one command.** Clone it, `dotnet run`, and you
@@ -39,10 +39,11 @@ What makes it worth reading:
   function with its own test suite — every boundary covered.
 
 <div align="center">
-  <img src="docs/screenshots/home.png" alt="Home: category picker, game settings, open rooms, personal stats and leaderboard" width="900">
+  <img src="docs/screenshots/home-en.png" alt="Home: category picker, game settings, open rooms, personal stats and leaderboard" width="900">
 </div>
 
-> Screenshots come from the bundled demo seed, so the numbers are sample data.
+> Screenshots come from the bundled demo seed running in English, so the
+> numbers are sample data.
 > Every hardening decision below is documented with the attack it closes, not
 > just the setting it changes — see the [security section](#security).
 
@@ -55,6 +56,7 @@ What makes it worth reading:
 - [Game flow](#game-flow)
 - [Admin console](#admin-console)
 - [Security](#security)
+- [Two languages](#two-languages-one-bundle)
 - [Scoring](#scoring)
 - [API reference](#api-reference)
 - [Testing](#testing)
@@ -196,14 +198,14 @@ stateDiagram-v2
 
 ## Admin console
 
-Sign in as an administrator and the top bar gains a **Yönetim** entry: five
+Sign in as an administrator and the top bar gains an **Admin** entry: five
 tabs, each gated by its own permission. The route guard only answers "may this
 user open the console"; which tabs appear is decided per tab, and every one of
 those permissions is enforced again in the business layer, so hiding a tab is a
 courtesy rather than the boundary.
 
 <div align="center">
-  <img src="docs/screenshots/admin-dashboard.png" alt="Admin dashboard: KPI tiles and a hand-drawn SVG activity chart" width="900">
+  <img src="docs/screenshots/admin-dashboard-en.png" alt="Admin dashboard: KPI tiles and a hand-drawn SVG activity chart" width="900">
 </div>
 
 | Tab | Permission | What it does |
@@ -230,6 +232,33 @@ arrived, and cancels those nobody signed up for. There is deliberately **no
 endpoint that starts an event early**: the announced time is the whole point.
 Registering also does not count as "being in a room", so a player who signs up
 for Friday's tournament can still play today.
+
+<div align="center">
+  <img src="docs/screenshots/admin-events-en.png" alt="Admin events tab: scheduled tournaments with start time, sign-ups and status" width="900">
+</div>
+
+---
+
+## Two languages, one bundle
+
+The interface ships in **English and Turkish**, and picks the right one from the
+browser on first visit (`navigator.language`); the selector in the top bar
+overrides it and the choice is remembered.
+
+There is no build step and no second bundle: `wwwroot/i18n.js` holds both
+dictionaries, `t('key')` resolves the current one, and static markup is filled
+from `data-i18n` attributes. Switching redraws the open screen in place.
+
+**Server messages follow the interface.** Every request carries
+`Accept-Language`, ASP.NET Core's request localisation sets
+`CurrentUICulture`, and validation and business-rule messages come back in the
+same language — so an English screen never shows a Turkish error. The message
+tables live in `QuizArena.Core/Localization`, and a test fails the build if the
+two tables ever drift apart.
+
+**The question pool is localised too.** `Seed:ContentLanguage` selects the seed
+set, so an English install starts with English categories, questions and
+achievements rather than translated Turkish ones.
 
 ---
 
@@ -397,6 +426,7 @@ handling, and submitting an option belonging to a different question.
 | Refresh token lifetime | `TokenOptions__RefreshTokenExpirationDays` | 7 days |
 | Allowed CORS origins | `Cors__AllowedOrigins__0` | localhost |
 | Admin password | `Seed__AdminPassword` | none (see above) |
+| Seed content language | `Seed__ContentLanguage` | `tr` (`en` for the English pool) |
 | Global rate limit | `RateLimiting__GeneralPermitPerMinute` | 120/min |
 
 `TokenOptions` is validated with `ValidateOnStart()`: if the key is missing or
