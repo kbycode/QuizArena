@@ -527,6 +527,17 @@ quietly.
 > **A note on language.** Code identifiers and public APIs are English; inline
 > comments and user-facing text are Turkish, matching the application's audience.
 
+## Related
+
+The same backend serves three clients:
+
+- [QuizArena-Angular](https://github.com/kbycode/QuizArena-Angular) — Angular 21
+  + PrimeNG client
+- [QuizArena-Android](https://github.com/kbycode/QuizArena-Android) — native
+  Android client (Jetpack Compose) with an offline practice mode
+
+---
+
 ---
 
 ## License

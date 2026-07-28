@@ -488,6 +488,17 @@ QuizArena/
     └── QuizArena.Tests/       · 120 test (xUnit + FluentAssertions + SQLite)
 ```
 
+## İlgili projeler
+
+Aynı arka uç üç istemciye hizmet ediyor:
+
+- [QuizArena-Angular](https://github.com/kbycode/QuizArena-Angular) — Angular 21
+  + PrimeNG istemcisi
+- [QuizArena-Android](https://github.com/kbycode/QuizArena-Android) — native
+  Android istemcisi (Jetpack Compose), çevrimdışı alıştırma kipiyle
+
+---
+
 ---
 
 ## Lisans
